@@ -1,0 +1,66 @@
+﻿@page "/products/create"
+@using DrawerPos.Shared
+@inject DrawerPos.Blazor.Services.ProductService ProductService
+@inject NavigationManager Navigation
+
+<h3>Create Product</h3>
+
+@if (categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="product" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Product Name: </label>
+            <InputText @bind-Value="product.ProductName" />
+        </div>
+        <div>
+            <label>Category: </label>
+            <InputSelect @bind-Value="product.CategoryId">
+                <option value="">Select a category</option>
+                @foreach (var category in categories)
+                {
+                    <option value="@category.CategoryId">@category.CategoryName</option>
+                }
+            </InputSelect>
+        </div>
+        <div>
+            <label>Price: </label>
+            <InputNumber @bind-Value="product.Price" />
+        </div>
+        <div>
+            <label>Image URL: </label>
+            <InputText @bind-Value="product.Image" />
+        </div>
+        <div>
+            <label>Unit: </label>
+            <InputText @bind-Value="product.Unit" />
+        </div>
+        <div>
+            <label>Status: </label>
+            <InputText @bind-Value="product.Status" />
+        </div>
+        <button type="submit">Create</button>
+    </EditForm>
+}
+
+@code {
+    private Product product = new Product();
+    private IEnumerable<Category> categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await ProductService.GetCategories();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await ProductService.CreateProduct(product);
+        Navigation.NavigateTo("/products");
+    }
+}

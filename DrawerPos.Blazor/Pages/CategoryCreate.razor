@@ -1,0 +1,27 @@
+﻿@page "/categories/create"
+@inject DrawerPos.Blazor.Services.CategoryService CategoryService
+@inject NavigationManager Navigation
+@using DrawerPos.Shared
+
+<h3>Create Category</h3>
+
+<EditForm Model="category" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Category Name: </label>
+        <InputText @bind-Value="category.CategoryName" />
+    </div>
+    <button type="submit">Create</button>
+</EditForm>
+
+@code {
+    private Category category = new Category();
+
+    private async Task HandleValidSubmit()
+    {
+        await CategoryService.CreateCategory(category);
+        Navigation.NavigateTo("/categories");
+    }
+}

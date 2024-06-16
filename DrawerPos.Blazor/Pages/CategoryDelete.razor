@@ -1,0 +1,43 @@
+﻿@page "/categories/delete/{id:int}"
+@inject DrawerPos.Blazor.Services.CategoryService CategoryService
+@inject NavigationManager Navigation
+@using DrawerPos.Shared
+
+<h3>Delete Category</h3>
+
+@if (category == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>
+        <p>Are you sure you want to delete this category?</p>
+        <p>Name: @category.CategoryName</p>
+        <button @onclick="DeleteCategory">Delete</button>
+        <button @onclick="Cancel">Cancel</button>
+    </div>
+}
+
+@code {
+    private Category category;
+
+    [Parameter]
+    public int id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        category = await CategoryService.GetCategory(id);
+    }
+
+    private async Task DeleteCategory()
+    {
+        await CategoryService.DeleteCategory(id);
+        Navigation.NavigateTo("/categories");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/categories");
+    }
+}

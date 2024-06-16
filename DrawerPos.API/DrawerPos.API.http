@@ -1,0 +1,6 @@
+@DrawerPos.API_HostAddress = http://localhost:5286
+
+GET {{DrawerPos.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
