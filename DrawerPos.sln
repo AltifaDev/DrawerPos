@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrawerPos.Data", "DrawerPos
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrawerPos.Shared", "DrawerPos.Shared\DrawerPos.Shared.csproj", "{6829AD1B-F9E7-43B3-A025-E6AFDFA98852}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawerPos.API", "DrawerPos.API\DrawerPos.API.csproj", "{8BD0B5DF-A7B3-410F-AD3C-E1D5B3D78747}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrawerPos.API", "DrawerPos.API\DrawerPos.API.csproj", "{8BD0B5DF-A7B3-410F-AD3C-E1D5B3D78747}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

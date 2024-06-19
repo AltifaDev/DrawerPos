@@ -37,7 +37,7 @@ public partial class AltifaDbContext : DbContext
     public virtual DbSet<Store> Stores { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Data Source=ALFA\\SQLEXPRESS;Initial Catalog=AltifaDB;Integrated Security=True;Encrypt=False");
+        => optionsBuilder.UseSqlServer("Data Source=ALFA\\SQLEXPRESS;Initial Catalog=DrawerPosDB;Integrated Security=True;Encrypt=False");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
