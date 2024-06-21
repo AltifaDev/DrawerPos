@@ -1,0 +1,132 @@
+﻿@page "/sidebar"
+@inject IJSRuntime JS
+
+<div class="container flex items-center w-full min-h-screen bg-dbe2f4">
+    <div class="sidebar relative flex flex-col gap-5 w-64 h-screen bg-white p-6 rounded-2xl transition-all duration-300">
+        <div class="menu-btn absolute right-[-14px] top-[3.5%] w-7 h-7 rounded-md flex items-center justify-center cursor-pointer text-gray-600 border-2 border-gray-200 bg-white"
+             @onclick="ToggleSidebar">
+            <i class="@menuButtonIcon transition-all duration-300"></i>
+        </div>
+        <div class="head flex gap-5 pb-5 border-b border-gray-200">
+            <div class="user-img w-11 h-11 rounded-full overflow-hidden">
+                <img src="user.jpg" alt="User Image" class="w-full object-cover" />
+            </div>
+            <div class="user-details">
+                <p class="title text-xs font-medium text-gray-600 uppercase mb-2">Web Developer</p>
+                <p class="name text-sm font-medium">John Doe</p>
+            </div>
+        </div>
+        <div class="nav flex-1">
+            <div class="menu pb-5 mb-5 border-b-2 border-gray-200">
+                <p class="title text-xs font-medium text-gray-600 uppercase mb-2">Main</p>
+                <ul>
+                    <li @onclick="() => ToggleSubMenu(0)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                            <i class="icon ph-bold ph-house-simple"></i>
+                            <span class="text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li @onclick="() => ToggleSubMenu(1)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                            <i class="icon ph-bold ph-user"></i>
+                            <span class="text">Audience</span>
+                            <i class="arrow ph-bold ph-caret-down"></i>
+                        </a>
+                        @if (isSubMenuOpen[1])
+                        {
+                            <ul class="sub-menu ml-5 pl-5 pt-1 border-l border-gray-200">
+                                <li class="mb-1">
+                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Users</a>
+                                </li>
+                                <li class="mb-1">
+                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Subscribers</a>
+                                </li>
+                            </ul>
+                        }
+                    </li>
+                    <li @onclick="() => ToggleSubMenu(2)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                            <i class="icon ph-bold ph-file-text"></i>
+                            <span class="text">Posts</span>
+                        </a>
+                    </li>
+                    <li @onclick="() => ToggleSubMenu(3)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                            <i class="icon ph-bold ph-calendar-blank"></i>
+                            <span class="text">Schedules</span>
+                        </a>
+                    </li>
+                    <li @onclick="() => ToggleSubMenu(4)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                            <i class="icon ph-bold ph-chart-bar"></i>
+                            <span class="text">Income</span>
+                            <i class="arrow ph-bold ph-caret-down"></i>
+                        </a>
+                        @if (isSubMenuOpen[4])
+                        {
+                            <ul class="sub-menu ml-5 pl-5 pt-1 border-l border-gray-200">
+                                <li class="mb-1">
+                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Earnings</a>
+                                </li>
+                                <li class="mb-1">
+                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Funds</a>
+                                </li>
+                                <li class="mb-1">
+                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Declines</a>
+                                </li>
+                                <li class="mb-1">
+                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Payouts</a>
+                                </li>
+                            </ul>
+                        }
+                    </li>
+                </ul>
+            </div>
+            <div class="menu">
+                <p class="title text-xs font-medium text-gray-600 uppercase mb-2">Settings</p>
+                <ul>
+                    <li @onclick="() => ToggleSubMenu(5)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                            <i class="icon ph-bold ph-gear"></i>
+                            <span class="text">Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="menu">
+            <p class="title text-xs font-medium text-gray-600 uppercase mb-2">Account</p>
+            <ul>
+                <li @onclick="() => ToggleSubMenu(6)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                    <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                        <i class="icon ph-bold ph-info"></i>
+                        <span class="text">Help</span>
+                    </a>
+                </li>
+                <li @onclick="() => ToggleSubMenu(7)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                    <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                        <i class="icon ph-bold ph-sign-out"></i>
+                        <span class="text">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+  
+</div>
+
+@code {
+    private bool[] isSubMenuOpen = new bool[8];
+    private string menuButtonIcon = "ph-bold ph-caret-left";
+
+    private async Task ToggleSidebar()
+    {
+        var isActive = await JS.InvokeAsync<bool>("toggleSidebar");
+        menuButtonIcon = isActive ? "ph-bold ph-caret-right" : "ph-bold ph-caret-left";
+    }
+
+    private void ToggleSubMenu(int index)
+    {
+        isSubMenuOpen[index] = !isSubMenuOpen[index];
+    }
+}

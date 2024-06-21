@@ -81,3 +81,12 @@
         overflow-y: auto;
     }
 }
+@media (min-width: 768px) {
+    #drawer-navigation {
+        width: 80px; /* Reduce width for larger screens */
+    }
+
+        #drawer-navigation .menu-text {
+            display: none; /* Hide text on larger screens */
+        }
+}

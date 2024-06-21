@@ -65,4 +65,41 @@
 code {
     color: #c02d76;
 }
- 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+.transition-all {
+    transition: all 0.5s ease-in-out;
+    overflow: hidden;
+}
+
+.expand {
+    max-height: 500px; /* Adjust based on your content */
+    opacity: 1;
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+.collapse {
+    max-height: 0;
+    opacity: 0;
+    animation: fadeOut 0.5s ease-in-out forwards;
+}

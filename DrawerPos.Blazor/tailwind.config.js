@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require('tailwindcss/colors');
 module.exports = {
     content: [
         "./**/*.razor",
@@ -25,6 +26,17 @@ module.exports = {
             serif: ['Merriweather', 'serif'],
         },
         extend: {
+            spacing: {
+                '80': '20rem'
+            },
+            colors: {
+                stone: colors.warmGray,
+                sky: colors.lightBlue,
+                neutral: colors.trueGray,
+                gray: colors.coolGray,
+                slate: colors.blueGray,
+
+            },
             animationDelay: {
                 275: '275ms',
                 5000: '5s',
@@ -41,7 +53,13 @@ module.exports = {
             borderRadius: {
                 '4xl': '2rem',
             }
-        }
+        },
+        screens: {
+            'sm': '640px',
+            'md': '768px',
+            'lg': '1024px',
+            'xl': '1280px',
+        },
     },
     plugins: [
         
