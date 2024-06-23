@@ -21,6 +21,7 @@
   "dependencies": {
     "flowbite": "^2.3.0",
     "tailwindcss-animated": "^1.1.1",
-    "tailwindcss-children": "^2.1.0"
+    "tailwindcss-children": "^2.1.0",
+    "tailwindcss-filters": "^3.0.0"
   }
 }

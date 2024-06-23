@@ -29,17 +29,16 @@ module.exports = {
             spacing: {
                 '80': '20rem'
             },
-            colors: {
-                stone: colors.warmGray,
-                sky: colors.lightBlue,
-                neutral: colors.trueGray,
-                gray: colors.coolGray,
-                slate: colors.blueGray,
-
+            backdropBlur: {
+                'sm': 'blur(4px)',
+                'md': 'blur(8px)',
+                'lg': 'blur(16px)',
             },
-            animationDelay: {
-                275: '275ms',
-                5000: '5s',
+            backgroundOpacity: {
+                '10': '0.1',
+                '20': '0.2',
+                '50': '0.5',
+                '75': '0.75',
             },
             animationDuration: {
                 2000: '2s',
@@ -64,6 +63,7 @@ module.exports = {
     plugins: [
         
         require('flowbite/plugin'),
-        require('tailwindcss-animated')
+        require('tailwindcss-animated'),
+        require('tailwindcss-filters'),
     ],
 }

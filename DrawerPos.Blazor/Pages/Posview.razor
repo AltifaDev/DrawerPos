@@ -3,6 +3,7 @@
 @inject DrawerPos.Blazor.Services.ProductService ProductService
 @inject NavigationManager Navigation
 
+
 <div class="container mx-auto">
     <div class="flex flex-col md:flex-row mt-4">
         <!-- Left Side: Products -->
@@ -12,7 +13,7 @@
                     @foreach (var category in categories)
                     {
                         <li class="mr-2" role="presentation">
-                            <button class="inline-block p-4 border-b-2 rounded-t-lg @(category == selectedCategory ? "border-blue-500" : "border-transparent")"
+                            <button class="inline-block p-4 border-b-2 rounded-t-sm @(category == selectedCategory ? "border-blue-500" : "border-transparent")"
                                     @onclick="() => SelectCategory(category)"
                                     aria-selected="@(category == selectedCategory)">
                                 @category.CategoryName
@@ -21,118 +22,116 @@
                     }
                 </ul>
             </div>
-            <div class="flex flex-wrap ">
-                <div class="grid grid-cols-4 sm:grid-cols-1 gap-4">
+            <div class="flex flex-wrap">
+                <div class="grid grid-cols-4 gap-4">
                     @if (products == null)
                     {
                         <div>Loading products...</div>
-                    }
-                    else if (!filteredProducts.Any())
-                    {
-                        <div role="status" class="animate-fade-up p-4 border border-gray-200 rounded shadow animate-pulse md:p-6 dark:border-gray-700">
-                            <div class="flex items-center justify-center h-32 mb-4 bg-gray-300 rounded dark:bg-gray-700">
-                                <svg class="w-16 h-full text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 20">
-                                    <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
-                                    <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
-                                </svg>
-                            </div>
-                            <div class="space-x-4 h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-36 mb-4"></div>
-                            <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
-                            <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700"></div>
-                            <span class="sr-only">Loading...</span>
-                        </div>
-                        <div role="status" class="animate-fade-up p-4 border border-gray-200 rounded shadow animate-pulse md:p-6 dark:border-gray-700">
-                            <div class="flex items-center justify-center h-32 mb-4 bg-gray-300 rounded dark:bg-gray-700">
-                                <svg class="w-16 h-full text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 20">
-                                    <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
-                                    <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
-                                </svg>
-                            </div>
-                            <div class="space-x-4 h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-36 mb-4"></div>
-                            <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
-                            <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700"></div>
-                            <span class="sr-only">Loading...</span>
-                        </div>
-                        <div role="status" class="animate-fade-up p-4 border border-gray-200 rounded shadow animate-pulse md:p-6 dark:border-gray-700">
-                            <div class="flex items-center justify-center h-32 mb-4 bg-gray-300 rounded dark:bg-gray-700">
-                                <svg class="w-16 h-full text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 20">
-                                    <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
-                                    <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
-                                </svg>
-                            </div>
-                            <div class="space-x-4 h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-36 mb-4"></div>
-                            <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
-                            <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700"></div>
-                            <span class="sr-only">Loading...</span>
-                        </div>
                     }
                     else
                     {
                         @foreach (var product in filteredProducts)
                         {
-                            <div id="cdproduct" class="animate-fade-up w-full bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700 p-4"
-                                 @onclick="() => AddToCart(product)">
-                                <div class="flex flex-col items-center">
-                                    <img class="w-16 h-16 mb-2 rounded-full shadow-lg" src="@($"data:image/png;base64,{product.Image}")" alt="@product.ProductName" />
-                                    <h3 class="mb-1 text-sm font-bold text-gray-900 dark:text-white">@product.NameDisplay</h3>
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">@product.ProductName</span>
-                                    <h3 class="mb-1 text-sm font-bold text-gray-900 dark:text-white">@product.Price.ToString("C")</h3>
+                            <button id="productlist" class="animate-fade-up" @onclick="() => AddToCart(product)">
+                                <div class="relative flex flex-col items-center bg-white border rounded-lg hover:shadow-lg p-2 w-24 h-24 @(Cart.Any(item => item.Product.ProductId == product.ProductId) ? "border-blue-500 border-2" : "border-gray-200")">
+                                    <div class="w-24 h-24 overflow-hidden">
+                                        <img src="@($"data:image/png;base64,{product.Image}")" alt="@product.ProductName" class="w-full h-full object-contain">
+                                    </div>
+                                    @if (Cart.Any(item => item.Product.ProductId == product.ProductId))
+                                    {
+                                        <div class="absolute top-0 left-0 bg-blue-500 w-8 rounded-br-lg">
+                                            <span class="text-xs text-white">@Cart.First(item => item.Product.ProductId == product.ProductId).Quantity</span>
+                                        </div>
+                                    }
                                 </div>
-                            </div>
-
+                                <div class="text-center mt-2">
+                                    <p class="text-xs font-bold">@product.NameDisplay</p>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">@product.ProductName</span>
+                                    <p class="text-sm font-semibold">@product.Price.ToString("C")</p>
+                                </div>
+                            </button>
                         }
+
                     }
                 </div>
             </div>
         </div>
-
-
         <div class="md:w-1/3">
-            <div class="animate-fade-up border-none w-80 rounded bg-gray-100 ">
-                <h3 class="text-md font-semibold mb-2 text-gray-900">Order List</h3>
-                <div class="w-full h-80 overflow-auto p-6">
-                @foreach (var item in Cart)
-                {
-                    <div class="animate-fade-up animate-ease-out bg-gray-700 text-black p-2 rounded-lg shadow-lg flex flex-col items-center w-full mb-2 transition-max-height duration-300"
-                         @onclick="() => SelectItem(item)"
-                         style="@((selectedItem == item) ? "max-height: 300px; background-color: #353535; color:#ffffff" : "max-height: 80px; background-color: #ffffff; color:#000000")">
-                        <!-- Image and Info Section -->
-                        <div class="flex w-64 items-start justify-between">
-                            <img src="@($"data:image/png;base64,{item.Product.Image}")" alt="@item.Product.ProductName" class="w-12 h-12">
-                            <div class="flex flex-col items-center ml-4">
-                                <span class="text-sm mt-2">@item.Product.NameDisplay</span>
-                                <span class="text-md font-bold">@item.TotalPrice.ToString("0.##") ฿</span>
+            <div class="animate-fade-up border-none w-full rounded">
+                <div class="w-full h-80 overflow-auto p-6 bg-gray-100">
+                    <div class="bg-white shadow-md rounded-lg p-4 max-w-sm mx-auto mb-2">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h2 class="text-md font-semibold">Order List, T15</h2>
+                                <p class="text-sm text-gray-500">Transaction #00389</p>
                             </div>
-                            <div class="flex flex-col items-center mt-0 md:mb-0 md:mr-4">
-                                <button class="bg-gray-600 hover:bg-gray-500 rounded-full mt-0.5" @onclick="() => UpdateQuantity(item, 1)">
-                                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path>
+                            <div class="flex space-x-2">
+                                <button class="bg-gray-200 p-2 rounded-full hover:bg-gray-300">
+                                    <!-- Percentage Icon (using Heroicons) -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </button>
-                                <span class="text-sm font-bold">@item.Quantity</span>
-                                <button class="bg-gray-600 hover:bg-gray-500 rounded-full mb-0.5" @onclick="() => UpdateQuantity(item, -1)">
-                                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>
+                                <button class="bg-gray-200 p-2 rounded-full hover:bg-gray-300" @onclick="() => RemoveAllFromCart()">
+                                    <!-- Trash Icon (using Heroicons) -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Action Buttons -->
-                        @if (selectedItem == item)
-                        {
-                            <div class="flex justify-between w-full mt-4 space-x-4 animate-fade-in">
-                                <button style="@((selectedItem == item) ? "background-color: #353535; color:#ffffff" : "background-color: #ffffff; color:#000000")" class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">Note</button>
-
-                                <button style="@((selectedItem == item) ? "background-color: #353535; color:#ffffff" : "background-color: #ffffff; color:#000000")" class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">Discount</button>
-
-                                <button style="@((selectedItem == item) ? "background-color: #353535; color:#ffffff" : "background-color: #ffffff; color:#000000")" class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200 bg-white text-red-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800" @onclick="() => RemoveFromCart(item)">Remove</button>
-                            </div>
-                        }
+                        <div class="flex space-x-2">
+                            <button class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300 text-sm">Add Client</button>
+                            <button class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300 text-sm">Eat In</button>
+                            <button class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300 text-sm">Delivery</button>
+                        </div>
                     </div>
-                }
+                    @foreach (var item in Cart)
+                    {
+                        <div id="orderlist" class="animate-fade-up animate-ease-out text-black p-2 rounded-lg shadow-lg flex flex-col items-center w-full mb-2 transition-max-height duration-300 "
+                             @onclick="() => SelectItem(item)"
+                             style="@(selectedItem == item ? "max-height: 300px; background-color: #353535; color:#ffffff" : "max-height: 80px; background-color: #ffffff; color:#000000")">
+                            <!-- Image and Info Section -->
+                            <div class="flex w-full items-start justify-between">
+                                <div class="w-14 h-14 overflow-hidden">
+                                    <img src="@($"data:image/png;base64,{item.Product.Image}")" alt="@item.Product.ProductName" class="w-full h-full object-contain">
+                                </div>
+
+                                <div class="flex flex-col items-center">
+                                    <span class="text-sm mt-2" hidden>@item.Product.ProductId</span>
+                                    <span class="text-sm mt-2">@item.Product.NameDisplay</span>
+                                    <span class="text-md font-bold">@item.TotalPrice.ToString("0.##") ฿</span>
+                                </div>
+                                <div class="flex flex-col items-center mt-0 md:mb-0 md:mr-4">
+                                    <button class="bg-gray-600 hover:bg-gray-500 rounded-full mt-0.5" @onclick="() => UpdateQuantity(item, 1)">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path>
+                                        </svg>
+                                    </button>
+                                    <span class="text-sm font-bold">@item.Quantity</span>
+                                    <button class="bg-gray-600 hover:bg-gray-500 rounded-full mb-0.5" @onclick="() => UpdateQuantity(item, -1)">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            @if (selectedItem == item)
+                            {
+                                <div class="flex justify-between w-full mt-4 space-x-4 animate-fade-in">
+                                    <button style="@(selectedItem == item ? "background-color: #353535; color:#ffffff" : "background-color: #ffffff; color:#000000")" class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">Note</button>
+
+                                    <button style="@(selectedItem == item ? "background-color: #353535; color:#ffffff" : "background-color: #ffffff; color:#000000")" class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">Discount</button>
+
+                                    <button style="@(selectedItem == item ? "background-color: #353535; color:#ffffff" : "background-color: #ffffff; color:#000000")" class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200 bg-white text-red-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800" @onclick="() => RemoveFromCart(item)">Remove</button>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
-                <div class="border-t mt-2 pt-2 flex justify-between">
+                <div class="border-none p-6 flex justify-between backdrop-filter backdrop-blur-sm bg-opacity-1">
                     <span class="font-semibold">Total:</span>
                     <span>@Cart.Sum(item => item.TotalPrice * item.Quantity).ToString("0.##") $</span>
                 </div>
@@ -142,6 +141,7 @@
         </div>
     </div>
 </div>
+
 
 @code {
     private IEnumerable<Product> products = new List<Product>();
@@ -192,6 +192,7 @@
             cartItem.Quantity++;
             cartItem.TotalPrice += product.Price;
         }
+        Console.WriteLine($"Product {product.ProductId} added to cart. Total items in cart: {Cart.Count}"); // Debug
         StateHasChanged();
     }
     private CartItem selectedItem;
@@ -201,7 +202,12 @@
         selectedItem = selectedItem == item ? null : item;
         StateHasChanged(); // Force re-render to apply CSS classes
     }
-
+    private void RemoveAllFromCart()
+    {
+        Cart.Clear(); // Assuming Cart is a List<CartItem> or similar collection
+        selectedItem = null; // Deselect any selected item
+        StateHasChanged(); // Force re-render to apply changes
+    }
     private void UpdateQuantity(CartItem item, int change)
     {
         item.Quantity += change;
@@ -229,7 +235,5 @@
         public Product Product { get; set; }
         public int Quantity { get; set; }
         public decimal TotalPrice { get; set; }
-
-
     }
 }

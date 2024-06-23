@@ -103,3 +103,8 @@ code {
     opacity: 0;
     animation: fadeOut 0.5s ease-in-out forwards;
 }
+.backdrop-filter {
+     
+    backdrop-filter: blur(10px);
+}
+
