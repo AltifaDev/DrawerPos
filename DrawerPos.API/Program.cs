@@ -1,4 +1,3 @@
-// Program.cs
 using DrawerPos.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -16,22 +15,28 @@ builder.Services.AddControllers()
     });
 builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson(options =>
-    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-);
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+    {
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+    });
+
+// Configure CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://localhost:7222")
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy.WithOrigins("http://drawerposapp.runasp.net")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Configure DbContext with SQL Server
 builder.Services.AddDbContext<AltifaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionCloud")));
 
 var app = builder.Build();
 
@@ -43,11 +48,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();  // Middleware to serve static files
+app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors(); // Enable CORS
+app.UseCors(); // Enable CORS middleware
 
 app.UseAuthorization();
 

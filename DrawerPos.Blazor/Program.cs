@@ -14,7 +14,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Configure HttpClient with the correct base address
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7141/") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://drawerposapi.runasp.net/") });
 
 // Add ProductService and CategoryService
 builder.Services.AddScoped<ProductService>();

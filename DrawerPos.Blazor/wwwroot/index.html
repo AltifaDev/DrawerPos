@@ -12,7 +12,6 @@
     <link href="manifest.webmanifest" rel="manifest" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
- 
 </head>
 
 <body>
@@ -32,12 +31,29 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
-     
-    <script>navigator.serviceWorker.register('service-worker.js');</script>
+
     <script>
-        window.initializeFlowbite = () => {
-            initFlowbite();
+        // Service worker registration with error handling
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(function (registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(function (error) {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+        } else {
+            console.log('Service workers are not supported.');
         }
+
+        // Initialize Flowbite
+        window.initializeFlowbite = () => {
+            if (typeof initFlowbite !== 'undefined') {
+                initFlowbite();
+            } else {
+                console.error('Flowbite initialization function is not defined.');
+            }
+        };
     </script>
 </body>
 
