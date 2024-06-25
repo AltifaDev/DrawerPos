@@ -24,7 +24,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://drawerposapp.runasp.net")
+        policy.WithOrigins("https://localhost:7222") // Match exactly with the origin
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -36,7 +36,7 @@ builder.Services.AddSwaggerGen();
 
 // Configure DbContext with SQL Server
 builder.Services.AddDbContext<AltifaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionCloud")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

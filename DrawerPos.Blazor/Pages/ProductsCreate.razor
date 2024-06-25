@@ -1,0 +1,149 @@
+﻿@page "/product/create"
+@using DrawerPos.Shared
+@inject DrawerPos.Blazor.Services.ProductService ProductService
+@inject NavigationManager Navigation
+
+@if (categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="bg-gray-100 p-6">
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-bold mb-6">General Information</h2>
+    <form>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Product Name</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Type product name">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Tags</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="e.g computer, pc">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Brand</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Product brand">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Price</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="$2999">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Category</label>
+                <select class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    <option>Select category</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Return Policy</label>
+                <select class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    <option>30 days</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Item Weight (kg)</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="12">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Length (cm)</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="105">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Breadth (cm)</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="15">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Width (cm)</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="23">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Ships From</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Bergside Inc.">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Sold By</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Flowbite LLC">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Import Fees</label>
+                <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="0">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Product State</label>
+                <select class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    <option>New</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+        </div>
+        <div class="mt-6">
+            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" rows="4" placeholder="Write product description here"></textarea>
+        </div>
+        <div class="mt-6">
+            <label class="block text-sm font-medium text-gray-700">Product Images</label>
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-md">
+                <div class="space-y-1 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                        <path d="M28 8H20V16H28V8ZM28 22H20V30H28V22ZM28 36H20V44H28V36ZM16 8H8V16H16V8ZM16 22H8V30H16V22ZM16 36H8V44H16V36ZM36 8H28V16H36V8ZM36 22H28V30H36V22ZM36 36H28V44H36V36ZM44 8H36V16H44V8ZM44 22H36V30H44V22ZM44 36H36V44H44V36Z" />
+                    </svg>
+                    <div class="flex text-sm text-gray-600">
+                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                            <span>Click to upload</span>
+                            <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                        </label>
+                        <p class="pl-1">or drag and drop</p>
+                    </div>
+                    <p class="text-xs text-gray-500">
+                        Max. file size: 30MB
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-6 flex items-center">
+            <input type="checkbox" id="multiple-options" name="multiple-options" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+            <label for="multiple-options" class="ml-2 block text-sm text-gray-900">Product has multiple options, like different colors or sizes</label>
+        </div>
+        <div class="mt-6">
+            <label class="block text-sm font-medium text-gray-700">Discount</label>
+            <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Enter discount">
+        </div>
+        <div class="mt-6">
+            <button type="submit" class="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Add product</button>
+        </div>
+    </form>
+</div>
+    </div>
+}
+   
+@code {
+    private Product product = new Product();
+    private IEnumerable<Category> categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await ProductService.GetCategories();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await ProductService.CreateProduct(product);
+        Navigation.NavigateTo("/products");
+    }
+    private void ToggleModal()
+    {
+        Navigation.NavigateTo("/products");
+    }
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var resizedFile = await file.RequestImageFileAsync(file.ContentType, 300, 500);
+        var buffer = new byte[resizedFile.Size];
+        await resizedFile.OpenReadStream().ReadAsync(buffer);
+        product.Image = Convert.ToBase64String(buffer);
+    }
+}

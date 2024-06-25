@@ -1,3 +1,4 @@
+using CurrieTechnologies.Razor.SweetAlert2;
 using DrawerPos.Blazor;
 using DrawerPos.Blazor.Services;
 using Microsoft.AspNetCore.Components.Web;
@@ -14,7 +15,9 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Configure HttpClient with the correct base address
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://drawerposapi.runasp.net/") });
+//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://drawerposapi.runasp.net/") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7141/") });
+builder.Services.AddSweetAlert2();
 
 // Add ProductService and CategoryService
 builder.Services.AddScoped<ProductService>();

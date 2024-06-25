@@ -26,8 +26,10 @@ module.exports = {
             serif: ['Merriweather', 'serif'],
         },
         extend: {
-            spacing: {
-                '80': '20rem'
+             
+            height: {
+                '90': '24rem',
+                '128': '32rem',
             },
             backdropBlur: {
                 'sm': 'blur(4px)',
@@ -48,6 +50,8 @@ module.exports = {
             spacing: {
                 '8xl': '96rem',
                 '9xl': '128rem',
+                '90': '24rem',
+                '80': '20rem',
             },
             borderRadius: {
                 '4xl': '2rem',
@@ -61,7 +65,20 @@ module.exports = {
         },
     },
     plugins: [
-        
+        function ({ addUtilities }) {
+            const newUtilities = {
+                '.hide-scrollbar': {
+                    'scrollbar-width': 'none',
+                    '-ms-overflow-style': 'none',
+                },
+                '.hide-scrollbar::-webkit-scrollbar': {
+                    display: 'none',
+                },
+            };
+
+            addUtilities(newUtilities, ['responsive', 'hover']);
+        },
+     
         require('flowbite/plugin'),
         require('tailwindcss-animated'),
         require('tailwindcss-filters'),

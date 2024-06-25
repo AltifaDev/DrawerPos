@@ -21,7 +21,7 @@ else
                 <div class="text-center">
                     @if (!string.IsNullOrEmpty(product.Image))
                     {
-                        <img src="@($"data:image/png;base64,{product.Image}")" class="img-fluid mb-3 mx-auto h-14 w-12" alt="Product Image" />
+                        <img src="@($"data:image/png;base64,{product.Image}")" class="img-fluid mb-3 mx-auto h-14 w-14" alt="Product Image" />
                     }
                     else
                     {
@@ -34,9 +34,9 @@ else
                         <label for="image" class="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500">
                             <span>Upload a file</span>
                         </label>
-                        <p class="pl-1">or drag and drop</p>
+                        <p class="pl-1">Type PNG, JPG, GIF</p>
                     </div>
-                    <p class="text-xs leading-5 text-gray-600">PNG, JPG, GIF up to 10MB</p>
+                    <p class="text-xs leading-5 text-gray-600">Maximum up to 5MB</p>
                 </div>
             </div>
         </div>
@@ -76,8 +76,8 @@ else
                 <label for="underline_unit" class="sr-only">Unit select</label>
                 <InputSelect id="unit" @bind-Value="product.Unit" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
                     <option selected>Choose a Unit</option>
-                    <option value="1">12 Oz</option>
-                    <option value="2">16 Oz</option>
+                    <option value="12 Oz">12 Oz</option>
+                    <option value="2">12 Oz</option>
                     <option value="3">gram</option>
                     <option value="4">Ml</option>
                 </InputSelect>

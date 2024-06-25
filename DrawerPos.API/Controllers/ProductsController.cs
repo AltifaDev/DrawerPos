@@ -21,7 +21,7 @@ namespace DrawerPos.API.Controllers
             _context = context;
             _logger = logger;
         }
-
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {

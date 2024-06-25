@@ -7,9 +7,12 @@
         public string NameDisplay { get; set; } = null!;
         public int CategoryId { get; set; }
         public decimal Price { get; set; }
+        public decimal CostPrice { get; set; }
         public int Quantity { get; set; }
-        public string? Image { get; set; }
         public string? Unit { get; set; }
+        public string? Image { get; set; }
+        public string? ProductBarcode { get; set; }
+        public string? ProductSize { get; set; }
         public string? Status { get; set; }
         public string? Description { get; set; }
         public virtual Category? Category { get; set; } // Navigation property
