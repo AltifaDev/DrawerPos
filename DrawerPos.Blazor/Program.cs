@@ -18,10 +18,13 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 //builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://drawerposapi.runasp.net/") });
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7141/") });
 builder.Services.AddSweetAlert2();
-
-// Add ProductService and CategoryService
+ // Add ProductService and CategoryService
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<BillNumberService>();
+builder.Services.AddScoped<OrderService>();
+
+
 
 // Configure logging
 builder.Logging.SetMinimumLevel(LogLevel.Debug);

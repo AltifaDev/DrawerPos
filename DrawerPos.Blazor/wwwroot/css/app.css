@@ -1,4 +1,7 @@
-
+::-webkit-scrollbar {
+    width: 8px;
+}
+/* this targets the default scrollbar (compulsory) */
 
 #blazor-error-ui {
     background: lightyellow;
@@ -110,10 +113,8 @@ code {
 
 .button {
     position: relative;
-    
-    border-radius: 4em;
-   
-    padding: 0.8em 1.8em;
+    border-radius: 2em;
+    padding: 0.2em 1.2em;
     cursor: pointer;
     user-select: none;
     text-align: center;
@@ -158,8 +159,8 @@ code {
     }
 
 .blur-bg {
-    backdrop-filter: blur(90px);
-    -webkit-backdrop-filter: blur(90px); /* For Safari */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* For Safari */
 }
 
 .shadow-top {

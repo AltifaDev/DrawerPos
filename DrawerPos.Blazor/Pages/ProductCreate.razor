@@ -39,7 +39,7 @@ else
             </div>
         </div>
         
-        <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+        <div class="mt-2 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
             <div class="relative sm:col-span-3">
                 <label for="floating_productname" class="block text-sm font-medium leading-6 text-gray-900">Product Name</label>
                 <InputText type="text" id="productname" @bind-Value="product.ProductName" name="floating_productname" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder=" " required />
@@ -50,7 +50,7 @@ else
             </div>
         </div>
 
-        <div class="sm:col-span-3 mt-4">
+        <div class="mt-2 sm:col-span-3 mt-4">
             <label for="country" class="block text-sm font-medium leading-6 text-gray-900">Category</label>
             <div class="mt-2">
                 <InputSelect id="categoryId" @bind-Value="product.CategoryId" name="repeat_categoryId" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
@@ -63,7 +63,7 @@ else
             </div>
         </div>
 
-       <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+       <div class="mt-2 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
        
             <div class="relative sm:col-span-3">
                 <label for="floating_quantity" class="block text-sm font-medium leading-6 text-gray-900">Quantity</label>
@@ -82,11 +82,28 @@ else
               
             </div>
         </div>
-        <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+        <div class="mt-2 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
             <div class="relative sm:col-span-3">
-                <label for="floating_number" class="block text-sm font-medium leading-6 text-gray-900">Price</label>
-                <InputNumber type="number" id="price" @bind-Value="product.Price" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder=" " required />
+                <label for="floating_number" class="block text-sm font-medium leading-6 text-gray-900">Cost Price</label>
+                <InputNumber type="number" id="costprice" @bind-Value="product.CostPrice" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder=" " required />
             </div>
+            <div class="relative sm:col-span-3">
+                <div class="relative sm:col-span-3">
+                    <label for="floating_number" class="block text-sm font-medium leading-6 text-gray-900">Sell Price</label>
+                    <InputNumber type="number" id="price" @bind-Value="product.Price" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder=" " required />
+                </div>
+               
+            </div>
+        </div>
+        <div class="relative sm:col-span-3 gap-x-6 gap-y-8 sm:grid-cols-6">
+            <label for="underline_unit" class="block text-sm font-medium leading-6 text-gray-900">Size</label>
+            <label for="underline_productsize" class="sr-only">Size select</label>
+            <InputSelect id="productsize" @bind-Value="product.ProductSize" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
+                <option value="">---Select---</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+            </InputSelect>
             <div class="relative sm:col-span-3">
                 <label for="underline_unit" class="block text-sm font-medium leading-6 text-gray-900">Status</label>
                 <label for="underline_status" class="sr-only">Status select</label>
