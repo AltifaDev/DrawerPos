@@ -12,6 +12,7 @@ public partial class Order
     public int? CustomerId { get; set; }
 
     public int? StoreId { get; set; }
+    public string? BillNo { get; set; }
 
     public decimal? TotalDiscount { get; set; }
 

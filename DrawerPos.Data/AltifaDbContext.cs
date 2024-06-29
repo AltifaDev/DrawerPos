@@ -90,7 +90,7 @@ namespace DrawerPos.Data
                 entity.HasKey(e => e.OrderId).HasName("PK__Orders__C3905BAF9B50830C");
                 entity.Property(e => e.OrderId).HasColumnName("OrderID");
                 entity.Property(e => e.CustomerId).HasColumnName("CustomerID");
-                entity.Property(e => e.OrderDate).HasColumnType("datetime");
+                entity.Property(e => e.OrderDate).HasDefaultValueSql("GETDATE()");
                 entity.Property(e => e.StoreId).HasColumnName("StoreID");
                 entity.Property(e => e.TotalAmount).HasColumnType("decimal(10, 2)");
                 entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
@@ -122,7 +122,7 @@ namespace DrawerPos.Data
                 entity.Property(e => e.PaymentId).HasColumnName("PaymentID");
                 entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
                 entity.Property(e => e.OrderId).HasColumnName("OrderID");
-                entity.Property(e => e.PaymentDate).HasColumnType("datetime");
+                entity.Property(e => e.PaymentDate).HasDefaultValueSql("GETDATE()");
                 entity.Property(e => e.PaymentMethod).HasMaxLength(50);
                 entity.HasOne(d => d.Order).WithMany(p => p.Payments)
                     .HasForeignKey(d => d.OrderId)

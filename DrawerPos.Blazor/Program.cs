@@ -21,7 +21,6 @@ builder.Services.AddSweetAlert2();
  // Add ProductService and CategoryService
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<BillNumberService>();
 builder.Services.AddScoped<OrderService>();
 
 
