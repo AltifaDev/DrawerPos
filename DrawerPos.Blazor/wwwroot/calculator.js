@@ -2,7 +2,10 @@
 window.getBalanceValue = function () {
     return document.getElementById('balance-display').value;
 }
-
+window.showCalculator = function (total) {
+    // Your showCalculator function implementation here
+    console.log("Calculator opened with total: " + total);
+};
 function formatCurrency(value) {
     let formattedValue = parseFloat(value).toLocaleString('th-TH', {
         style: 'decimal',
@@ -57,9 +60,9 @@ function showNumber(amountDue) {
         didOpen: () => {
             document.getElementById('open-drawer-button').onclick = function () {
                 const amountDue = parseFloat(this.getAttribute('data-total').replace(/[^\d.-]/g, ''));
+                showCalculator(amountDue);
                 callUpdateBalanceView(amountDue);
                 updateBalanceView();
-                DotNet.invokeMethodAsync('DrawerPos.Blazor', 'HandleValidSubmit');
             };
 
             window.buttonClicked = (num) => {
@@ -100,6 +103,7 @@ function updateBalanceView() {
 
     document.getElementById('balance-displayview').value = balanceDisplay;
     document.getElementById('payment-method').value = paymentMethod;
+  
 }
 
 function callUpdateBalanceView(amountDue) {
@@ -110,9 +114,11 @@ function callUpdateBalanceView(amountDue) {
     if (balanceValue >= amountDue) {
         Swal.fire({
             icon: "success",
-            title: "ชำระเงินสำเร็จ!",
-            text: `เงินทอน ${formatCurrency(balanceValue - amountDue)}`,
+            title: `เงินทอน ${formatCurrency(balanceValue - amountDue)}`,
+            text: "ชำระเงินสำเร็จ!",
         });
+        document.getElementById("btnCash").click();
+        DotNet.invokeMethodAsync('DrawerPos.Blazor', 'HandleValidSubmit');
     } else {
         Swal.fire({
             icon: "error",

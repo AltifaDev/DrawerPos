@@ -15,7 +15,7 @@ public partial class OrderItem
 
     public decimal? Price { get; set; }
     public decimal? Discount { get; set; }
-    public virtual Order? Order { get; set; }
+    public virtual Order? Order { get; set; } // Navigation property to Order
+    public virtual Product? Product { get; set; } // Navigation property to Product
 
-    public virtual Product? Product { get; set; }
 }
