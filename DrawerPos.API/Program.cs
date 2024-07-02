@@ -24,7 +24,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://localhost:7222") // Match exactly with the origin
+        policy.WithOrigins("https://altifadrawer.runasp.net") // Allow HTTPS origin
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -36,7 +36,7 @@ builder.Services.AddSwaggerGen();
 
 // Configure DbContext with SQL Server
 builder.Services.AddDbContext<AltifaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionCloud")));
 
 var app = builder.Build();
 

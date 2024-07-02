@@ -10,5 +10,5 @@ public class BillNumber
 {
     public int Id { get; set; }
     public string? BillNo { get; set; }
-    public virtual Order? Order { get; set; }
+ 
 }

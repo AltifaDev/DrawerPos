@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
    <ServerGarbageCollection>false</ServerGarbageCollection>
     <AspNetCoreHostingModel>inprocess</AspNetCoreHostingModel>
+   
   </PropertyGroup>
 
   <ItemGroup>

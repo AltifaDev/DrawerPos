@@ -21,8 +21,7 @@ function NotCalculator() {
         text: "กรุณาเลือกสินค้า ก่อนชำระเงิน!",
     });
 }
-
-function showNumber(amountDue) {
+window.showNumber = function (amountDue) {
     Swal.fire({
         html: `
             <div class="rounded-lg shadow-md p-4 w-full bg-white">
@@ -97,35 +96,14 @@ function showNumber(amountDue) {
     });
 }
 
+ 
 function updateBalanceView() {
     const balanceDisplay = document.getElementById('balance-display').value;
     const paymentMethod = "Cash";
 
-    document.getElementById('balance-displayview').value = balanceDisplay;
+    document.getElementById('balance-display').value = balanceDisplay;
     document.getElementById('payment-method').value = paymentMethod;
   
 }
 
-function callUpdateBalanceView(amountDue) {
-    const balanceDisplay = document.getElementById('balance-display');
-    let balanceValue = balanceDisplay.value.replace('฿', '').replace(/,/g, '').trim();
-    balanceValue = parseFloat(balanceValue);
-
-    if (balanceValue >= amountDue) {
-        Swal.fire({
-            icon: "success",
-            title: `เงินทอน ${formatCurrency(balanceValue - amountDue)}`,
-            text: "ชำระเงินสำเร็จ!",
-        });
-        document.getElementById("btnCash").click();
-        DotNet.invokeMethodAsync('DrawerPos.Blazor', 'HandleValidSubmit');
-    } else {
-        Swal.fire({
-            icon: "error",
-            title: "ยอดเงินไม่เพียงพอ",
-            text: `ยอดเงินที่ต้องชำระ ${formatCurrency(amountDue)} แต่คุณมี ${formatCurrency(balanceValue)}`
-        });
-    }
-
-    DotNet.invokeMethodAsync('DrawerPos.Blazor', 'StaticUpdateBalanceView');
-}
+ 

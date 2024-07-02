@@ -26,15 +26,30 @@ namespace DrawerPos.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] Order order)
         {
-            if (order == null || order.OrderItems == null || !order.OrderItems.Any())
+            if (order == null)
             {
-                _logger.LogWarning("Invalid order: Order is null or does not contain any items.");
-                return BadRequest("Order is null or does not contain any items.");
+                _logger.LogWarning("Order is null.");
+                return BadRequest("Order cannot be null.");
+            }
+
+            if (order.OrderItems == null || !order.OrderItems.Any())
+            {
+                _logger.LogWarning("Order does not contain any items.");
+                return BadRequest("Order must contain at least one item.");
+            }
+
+            foreach (var item in order.OrderItems)
+            {
+                if (item.Product == null)
+                {
+                    _logger.LogWarning("Order item contains null product.");
+                    return BadRequest("Order items must contain a valid product.");
+                }
             }
 
             try
             {
-                order.BillNo = '#' + GenerateUniqueNumber().ToString();
+                order.BillNo = await GenerateBillNumber();
                 order.OrderDate = DateTime.Now;
                 _logger.LogInformation("Creating order: {@Order}", order);
 
@@ -50,14 +65,51 @@ namespace DrawerPos.API.Controllers
             }
         }
 
-        private int GenerateUniqueNumber()
+        private async Task<string> GenerateBillNumber()
         {
-            Guid guid = Guid.NewGuid();
-            string guidString = guid.ToString("N");
-            string guidSubstring = guidString.Substring(0, 8);
-            long parsedNumber = long.Parse(guidSubstring, System.Globalization.NumberStyles.HexNumber);
-            int uniqueNumber = (int)(parsedNumber % int.MaxValue);
-            return uniqueNumber;
+            var lastBillNumber = await GetLastBillNumber();
+            var newBillNumber = IncrementBillNumber(lastBillNumber);
+            await UpdateLastBillNumber(newBillNumber);
+            return newBillNumber;
+        }
+
+        private async Task<string> GetLastBillNumber()
+        {
+            try
+            {
+                var lastBillNumber = await _context.BillNumbers
+                    .OrderByDescending(b => b.Id)
+                    .Select(b => b.BillNo)
+                    .FirstOrDefaultAsync();
+
+                return lastBillNumber ?? "#00000000";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching last BillNo.");
+                throw new Exception("Internal server error while fetching last BillNo.");
+            }
+        }
+
+        private string IncrementBillNumber(string billNo)
+        {
+            if (!string.IsNullOrEmpty(billNo))
+            {
+                if (int.TryParse(billNo.Substring(1), out int number))
+                {
+                    number++;
+                    return "#" + number.ToString("D8");
+                }
+            }
+
+            return "#00000001";
+        }
+
+        private async Task UpdateLastBillNumber(string newBillNumber)
+        {
+            var billNumber = new BillNumber { BillNo = newBillNumber };
+            _context.BillNumbers.Add(billNumber);
+            await _context.SaveChangesAsync();
         }
 
         [HttpGet("last-billno")]
@@ -65,16 +117,17 @@ namespace DrawerPos.API.Controllers
         {
             try
             {
-                var lastOrder = await _context.Orders
-                    .OrderByDescending(o => o.OrderDate)
+                var lastBillNo = await _context.BillNumbers
+                    .OrderByDescending(b => b.Id)
+                    .Select(b => b.BillNo)
                     .FirstOrDefaultAsync();
 
-                if (lastOrder == null)
+                if (lastBillNo == null)
                 {
-                    return NotFound("No orders found.");
+                    return NotFound("No bill numbers found.");
                 }
 
-                return Ok(lastOrder.BillNo);
+                return Ok(lastBillNo);
             }
             catch (Exception ex)
             {
@@ -82,6 +135,7 @@ namespace DrawerPos.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
@@ -100,6 +154,7 @@ namespace DrawerPos.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
         [HttpGet("GetDateOrders")]
         public async Task<ActionResult<IEnumerable<GroupedOrderItem>>> GetDateOrders([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
@@ -117,28 +172,28 @@ namespace DrawerPos.API.Controllers
                     query = query.Where(o => o.OrderDate <= endDate);
                 }
 
-                var orders = await _context.Orders
-                      .Include(o => o.OrderItems)
-                      .ThenInclude(oi => oi.Product)
-                      .ToListAsync();
+                var orders = await query
+                    .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                    .ToListAsync();
 
                 var groupedOrderItems = orders
-     .SelectMany(o => o.OrderItems)
-     .GroupBy(oi => oi.Product)  // Group by the Product object
-     .Select(g => new GroupedOrderItem
-     {
-         Products = g.Key,  // Assign the Product object
-         TotalQuantity = g.Sum(oi => oi.Quantity),
-         TotalPrice = g.Sum(oi => (oi.Price ?? 0) * oi.Quantity)
-     })
-     .OrderBy(g => g.Products.NameDisplay)  // Sort by Product Type in ascending order
-     .ToList();
+                    .SelectMany(o => o.OrderItems)
+                    .GroupBy(oi => oi.Product)
+                    .Select(g => new GroupedOrderItem
+                    {
+                        Products = g.Key,
+                        TotalQuantity = g.Sum(oi => oi.Quantity),
+                        TotalPrice = g.Sum(oi => (oi.Price ?? 0) * oi.Quantity)
+                    })
+                    .OrderBy(g => g.Products.NameDisplay)
+                    .ToList();
 
                 return Ok(groupedOrderItems);
-
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while fetching date orders.");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -146,52 +201,68 @@ namespace DrawerPos.API.Controllers
         [HttpGet("monthly-revenue")]
         public async Task<ActionResult<IEnumerable<MonthlyRevenueDto>>> GetMonthlyRevenue()
         {
-            var monthlyRevenue = await _context.Orders
-                .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
-                .Select(g => new MonthlyRevenueDto
-                {
-                    Year = g.Key.Year,
-                    Month = g.Key.Month,
-                    TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
-                })
-                .OrderBy(r => r.Year).ThenBy(r => r.Month)
-                .ToListAsync();
+            try
+            {
+                var monthlyRevenue = await _context.Orders
+                    .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
+                    .Select(g => new MonthlyRevenueDto
+                    {
+                        Year = g.Key.Year,
+                        Month = g.Key.Month,
+                        TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
+                    })
+                    .OrderBy(r => r.Year).ThenBy(r => r.Month)
+                    .ToListAsync();
 
-            return Ok(monthlyRevenue);
+                return Ok(monthlyRevenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching monthly revenue.");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpGet("weekly-monthly-revenue")]
         public async Task<ActionResult<WeeklyMonthlyRevenueDto>> GetWeeklyMonthlyRevenue()
         {
-            var today = DateTime.Today;
-            var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
-            var startOfMonth = new DateTime(today.Year, today.Month, 1);
-
-            var lastWeekRevenue = await _context.Orders
-                .Where(o => o.OrderDate >= startOfWeek)
-                .GroupBy(o => o.OrderDate.Date)
-                .Select(g => new DailyRevenueDto
-                {
-                    Date = g.Key,
-                    TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
-                })
-                .ToListAsync();
-
-            var thisMonthRevenue = await _context.Orders
-                .Where(o => o.OrderDate >= startOfMonth)
-                .GroupBy(o => o.OrderDate.Date)
-                .Select(g => new DailyRevenueDto
-                {
-                    Date = g.Key,
-                    TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
-                })
-                .ToListAsync();
-
-            return Ok(new WeeklyMonthlyRevenueDto
+            try
             {
-                LastWeekRevenue = lastWeekRevenue,
-                ThisMonthRevenue = thisMonthRevenue
-            });
+                var today = DateTime.Today;
+                var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+                var startOfMonth = new DateTime(today.Year, today.Month, 1);
+
+                var lastWeekRevenue = await _context.Orders
+                    .Where(o => o.OrderDate >= startOfWeek)
+                    .GroupBy(o => o.OrderDate.Date)
+                    .Select(g => new DailyRevenueDto
+                    {
+                        Date = g.Key,
+                        TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
+                    })
+                    .ToListAsync();
+
+                var thisMonthRevenue = await _context.Orders
+                    .Where(o => o.OrderDate >= startOfMonth)
+                    .GroupBy(o => o.OrderDate.Date)
+                    .Select(g => new DailyRevenueDto
+                    {
+                        Date = g.Key,
+                        TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
+                    })
+                    .ToListAsync();
+
+                return Ok(new WeeklyMonthlyRevenueDto
+                {
+                    LastWeekRevenue = lastWeekRevenue,
+                    ThisMonthRevenue = thisMonthRevenue
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching weekly and monthly revenue.");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 
@@ -213,4 +284,12 @@ namespace DrawerPos.API.Controllers
         public int Month { get; set; }
         public decimal TotalAmount { get; set; }
     }
+ 
+    public class GroupedOrderItem
+    {
+        public Product Products { get; set; }
+        public int TotalQuantity { get; set; }
+        public decimal TotalPrice { get; set; }
+    }
+
 }

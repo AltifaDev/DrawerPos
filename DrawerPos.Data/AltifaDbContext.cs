@@ -33,7 +33,7 @@ namespace DrawerPos.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Data Source=ALFA\\SQLEXPRESS;Initial Catalog=DrawerPosDB;Integrated Security=True;Encrypt=False");
+                optionsBuilder.UseSqlServer("Data Source=db5953.public.databaseasp.net;Initial Catalog=db5953;User ID=db5953;Password=6x@YC5c#3_Ha;Encrypt=False");
             }
         }
 

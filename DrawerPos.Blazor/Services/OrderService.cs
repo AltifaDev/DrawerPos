@@ -5,9 +5,9 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Threading.Tasks;
-using DrawerPos.Shared;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using DrawerPos.Shared;
 
 namespace DrawerPos.Blazor.Services
 {
@@ -58,6 +58,7 @@ namespace DrawerPos.Blazor.Services
                 throw;
             }
         }
+
         public async Task<List<GroupedOrderItem>> GetDateOrders(DateTime? startDate, DateTime? endDate)
         {
             var query = new Dictionary<string, string>();
@@ -88,6 +89,7 @@ namespace DrawerPos.Blazor.Services
                 throw;
             }
         }
+
         public async Task<IEnumerable<MonthlyRevenueDto>> GetMonthlyRevenue()
         {
             try
@@ -125,12 +127,34 @@ namespace DrawerPos.Blazor.Services
         {
             try
             {
+                // Validate the order object
+                if (order == null)
+                {
+                    _logger.LogError("Order object is null.");
+                    throw new ArgumentNullException(nameof(order));
+                }
+
+                _logger.LogInformation($"Creating order: {JsonSerializer.Serialize(order)}");
+
                 var response = await _httpClient.PostAsJsonAsync("api/orders", order);
-                response.EnsureSuccessStatusCode();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"Error creating order. Status Code: {response.StatusCode}, Response: {responseContent}");
+                    response.EnsureSuccessStatusCode(); // This will throw an exception
+                }
+
+                _logger.LogInformation("Order created successfully.");
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "Error creating order. Response: {response}", ex.Message);
+                _logger.LogError(ex, "Error creating order. Message: {Message}", ex.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while creating order. Message: {Message}", ex.Message);
                 throw;
             }
         }
@@ -141,12 +165,58 @@ namespace DrawerPos.Blazor.Services
             try
             {
                 var response = await _httpClient.GetAsync("api/orders/last-billno");
+                _logger.LogInformation($"Received response: {response.StatusCode}");
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsStringAsync();
+                var responseBody = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation($"Response body: {responseBody}");
+                return responseBody;
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "Error fetching last BillNo. Response: {response}", ex.Message);
+                _logger.LogError(ex, $"Error fetching last BillNo. Status code: {ex.StatusCode}, Response: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Unexpected error: {ex.Message}");
+                throw;
+            }
+        }
+
+        // Method to fetch the most recent order
+        public async Task<Order> GetMostRecentOrder()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("api/orders/most-recent");
+                response.EnsureSuccessStatusCode();
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    ReferenceHandler = ReferenceHandler.Preserve
+                };
+
+                return await response.Content.ReadFromJsonAsync<Order>(options);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"Request error: {ex.Message}");
+                throw;
+            }
+            catch (NotSupportedException ex) // When content type is not valid
+            {
+                _logger.LogError($"The content type is not supported: {ex.Message}");
+                throw;
+            }
+            catch (JsonException ex) // Invalid JSON
+            {
+                _logger.LogError($"Invalid JSON: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Unexpected error: {ex.Message}");
                 throw;
             }
         }
@@ -209,5 +279,4 @@ namespace DrawerPos.Blazor.Services
         public int Month { get; set; }
         public decimal TotalAmount { get; set; }
     }
-    
 }

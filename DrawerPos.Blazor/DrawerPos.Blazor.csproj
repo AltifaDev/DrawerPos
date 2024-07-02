@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
     <AspNetCoreHostingModel>inprocess</AspNetCoreHostingModel>
- 
+  
   </PropertyGroup>
 
   <ItemGroup>

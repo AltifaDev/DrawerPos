@@ -277,8 +277,7 @@
                                 <span>Cash</span>
                             </div>
                         </button>
-                        <!--JsCallButtonSubmit CashPayment-->
-                        <button type="submit" id="btnCash" hidden></button>
+                       
 
                         <!--ButtonSubmit QRPayment-->
                         @if (Cart.Sum(item => item.Quantity) == 0)
@@ -325,10 +324,48 @@
                 </div>
             </div>
         </EditForm>
+        <!--JsCallButtonSubmit CashPayment-->
+        <button type="submit" id="btnCash" hidden onclick="HandleValidSubmit()"></button>
     </div>
 </div>
+<script>
+    window.registerBlazorMethods = function (dotNetHelper) {
+        window.dotNetHelper = dotNetHelper;
+    };
 
-@code {
+    function callUpdateBalanceView(amountDue) {
+        const balanceDisplay = document.getElementById('balance-display');
+        let balanceValue = balanceDisplay.value.replace('฿', '').replace(/,/g, '').trim();
+        balanceValue = parseFloat(balanceValue);
+
+        if (balanceValue >= amountDue) {
+            Swal.fire({
+                icon: "success",
+                title: `เงินทอน ${formatCurrency(balanceValue - amountDue)}`,
+                text: "ชำระเงินสำเร็จ!",
+            });
+
+            window.dotNetHelper.invokeMethodAsync('HandleValidSubmit');
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "ยอดเงินไม่เพียงพอ",
+                text: `ยอดเงินที่ต้องชำระ ${formatCurrency(amountDue)} แต่คุณมี ${formatCurrency(balanceValue)}`
+            });
+        }
+
+        window.dotNetHelper.invokeMethodAsync('StaticUpdateBalanceView');
+    }
+
+    function formatCurrency(value) {
+        let formattedValue = parseFloat(value).toLocaleString('th-TH', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+        });
+        return formattedValue + ' ฿';
+    }
+</script>
+@code{
     private Order order = new Order();
     private Payment payment = new Payment();
     private OrderItem orderItem = new OrderItem();
@@ -354,6 +391,7 @@
     {
         instance = this;
     }
+
     protected override async Task OnInitializedAsync()
     {
         products = await ProductService.GetProducts();
@@ -368,6 +406,7 @@
         customThaiCulture = new CultureInfo("th-TH");
         customThaiCulture.NumberFormat.CurrencyPositivePattern = 3;
         customThaiCulture.NumberFormat.CurrencyNegativePattern = 12;
+
         try
         {
             lastBillNo = await OrderService.GetLastBillNoAsync();
@@ -381,6 +420,7 @@
             errorMessage = $"Error fetching last bill number: {ex.Message}";
         }
     }
+
     private async Task ShowCalculator()
     {
         if (Cart.Sum(item => item.Quantity) == 0)
@@ -393,11 +433,30 @@
             paymentMethod = "Cash";
         }
     }
+
     public async Task UpdateBalanceView()
     {
         var balance = await JS.InvokeAsync<string>("getBalanceValue");
         await JS.InvokeVoidAsync("eval", $"document.getElementById('balance-display').value = '{balance}'");
     }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JS.InvokeVoidAsync("registerBlazorMethods", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable("StaticUpdateBalanceView")]
+    public static async Task StaticUpdateBalanceView()
+    {
+        if (instance != null)
+        {
+            await instance.UpdateBalanceView();
+        }
+    }
+
     [JSInvokable]
     public async Task HandleValidSubmit()
     {
@@ -436,19 +495,11 @@
         }
     }
 
-    [JSInvokable]
-    public static async Task StaticUpdateBalanceView()
-    {
-        if (instance != null)
-        {
-            await instance.UpdateBalanceView();
-        }
-    }
-
     private async Task SetQrPaymentMethodReject()
     {
         await JS.InvokeVoidAsync("NotCalculator");
     }
+
     private void SetQrPaymentMethod()
     {
         paymentMethod = "Qr Payment";
@@ -526,46 +577,11 @@
         StateHasChanged();
     }
 
-    
-
     private class CartItem
     {
         public Product Product { get; set; }
         public int Quantity { get; set; }
         public decimal Discount { get; set; }
         public decimal TotalPrice { get; set; }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await JS.InvokeVoidAsync("eval", @"
-                window.showCalculator = function (total) {
-                    console.log('Calculator opened with total: ' + total);
-                };
-
-                var openDrawerButton = document.getElementById('open-drawer-button');
-                if (openDrawerButton) {
-                    openDrawerButton.onclick = function () {
-                        var amountDue = parseFloat(this.getAttribute('data-total').replace(/[^\d.-]/g, ''));
-                        showCalculator(amountDue);
-                        var btnCash = document.getElementById('btnCash');
-                        if (btnCash) {
-                            btnCash.click();
-                        }
-                        DotNet.invokeMethodAsync('DrawerPos.Blazor', 'HandleValidSubmit');
-                    };
-                }
-            ");
-        }
-    }
-
-    [JSInvokable]
-    public static Task SubmitOrder(decimal total)
-    {
-        // Handle the submission logic
-        Console.WriteLine($"Order submitted with total: {total}");
-        return Task.CompletedTask;
     }
 }
