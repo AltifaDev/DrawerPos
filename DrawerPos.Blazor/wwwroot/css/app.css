@@ -174,3 +174,22 @@ code {
     .hide-scrollbar::-webkit-scrollbar {
         display: none; /* For Chrome, Safari, and Opera */
     }
+
+.drawer {
+   
+    right: 0;
+    z-index: 40;
+    width: 24rem;
+    padding: 1rem;
+    overflow-y: auto;
+    background-color: #fff;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+    .drawer.open {  
+        transform: translateX(0);
+        opacity: 1;
+    }
+ 

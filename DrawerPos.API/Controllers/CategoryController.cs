@@ -12,9 +12,9 @@ namespace DrawerPos.API.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly AltifaDbContext _context;
+        private readonly DrawerPosDbContext _context;
 
-        public CategoriesController(AltifaDbContext context)
+        public CategoriesController(DrawerPosDbContext context)
         {
             _context = context;
         }

@@ -15,16 +15,17 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Configure HttpClient with the correct base address
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://drawerapi.runasp.net/") });
-// builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7141/") });
-
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7141/") });
+builder.Services.AddHttpClient<OrderService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7141/");
+});
 builder.Services.AddSweetAlert2();
 
-// Add ProductService and CategoryService
+// Add ProductService, CategoryService, and OrderService
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<OrderService>();
-
+builder.Services.AddScoped<IOrderService, OrderService>();
 // Configure logging
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
 

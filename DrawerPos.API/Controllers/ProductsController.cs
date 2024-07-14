@@ -13,10 +13,10 @@ namespace DrawerPos.API.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly AltifaDbContext _context;
+        private readonly DrawerPosDbContext _context;
         private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(AltifaDbContext context, ILogger<ProductsController> logger)
+        public ProductsController(DrawerPosDbContext context, ILogger<ProductsController> logger)
         {
             _context = context;
             _logger = logger;

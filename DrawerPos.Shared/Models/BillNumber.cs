@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace DrawerPos.Shared;
-
-public class BillNumber
+namespace DrawerPos.Shared
 {
-    public int Id { get; set; }
-    public string? BillNo { get; set; }
- 
+
+    public partial class BillNumber
+    {
+        public int BillNumberId { get; set; }
+
+        public string? BillNo { get; set; }
+
+        public string? OrderId { get; set; }
+    }
 }

@@ -38,5 +38,11 @@ window.applyFilter = (filterValue) => {
             row.style.display = "none";
         }
     });
+   
+}
+window.toggleSidebar = function () {
+    const sidebar = document.querySelector('.sidebar');
+    const isOpen = sidebar.style.width === '16rem';
+    sidebar.style.width = isOpen ? '5rem' : '16rem';
+    return !isOpen;
 };
- 

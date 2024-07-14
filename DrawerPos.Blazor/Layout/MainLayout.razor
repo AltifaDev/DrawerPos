@@ -1,13 +1,16 @@
 ﻿@inherits LayoutComponentBase
 @inject IJSRuntime Js
 
-  <!-- Sidebar -->
-<NavMenu />
-     <!-- Main Content -->
-    <div class="mt-10">
-     @Body
-       </div>
- 
+<div class="flex">
+    <!-- Sidebar -->
+    <Sidebar />
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8 w-full">
+        @Body
+    </div>
+</div>
+
 @code {
     protected override async Task OnAfterRenderAsync(bool isFirstRender)
     {

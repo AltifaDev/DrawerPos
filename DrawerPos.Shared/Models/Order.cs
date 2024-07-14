@@ -1,27 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace DrawerPos.Shared;
-
-public partial class Order
+namespace DrawerPos.Shared
 {
-    public int OrderId { get; set; }
+    public partial class Order
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int OrderId { get; set; }
 
-    public DateTime OrderDate { get; set; }
+        public string BillNo { get; set; } = null!;
 
-    public int? CustomerId { get; set; }
+        public DateTime OrderDate { get; set; }
 
-    public int? StoreId { get; set; }
-    public string? BillNo { get; set; }
+        public int? CustomerId { get; set; }
 
-    public decimal? TotalDiscount { get; set; }
+        public int? StoreId { get; set; }
 
-    public decimal? TotalAmount { get; set; }
+        public decimal? TotalAmount { get; set; }
 
-    public virtual Customer? Customer { get; set; }
+        public decimal? TotalDiscount { get; set; }
 
-    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public decimal? Discount { get; set; }
 
-    public virtual Store? Store { get; set; }
+        public string? PaymentMethod { get; set; }
+
+        public decimal? SubTotal { get; set; }
+
+        public decimal? Total { get; set; }
+
+        public virtual Customer? Customer { get; set; }
+
+        public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>(); // Initialize with an empty list of OrderItem
+
+        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+        public virtual Store? Store { get; set; }
+    }
 }

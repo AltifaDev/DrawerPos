@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace DrawerPos.API.Controllers
 {
@@ -14,57 +15,75 @@ namespace DrawerPos.API.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
-        private readonly AltifaDbContext _context;
+        private readonly DrawerPosDbContext _context;
         private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(AltifaDbContext context, ILogger<OrdersController> logger)
+        public OrdersController(DrawerPosDbContext context, ILogger<OrdersController> logger)
         {
             _context = context;
             _logger = logger;
         }
-
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] Order order)
+        public async Task<ActionResult<Order>> CreateOrder(OrderDTO orderDto)
         {
-            if (order == null)
+            var order = new Order
             {
-                _logger.LogWarning("Order is null.");
-                return BadRequest("Order cannot be null.");
-            }
+                BillNo = await GenerateBillNumber(),
+                OrderDate = orderDto.OrderDate,
+                CustomerId = orderDto.CustomerId,
+                StoreId = orderDto.StoreId,
+                TotalAmount = orderDto.Total,
+                TotalDiscount = orderDto.Discount,
+                Discount = orderDto.Discount,
+                PaymentMethod = orderDto.PaymentMethod,
+                SubTotal = orderDto.SubTotal,
+                Total = orderDto.Total
+            };
 
-            if (order.OrderItems == null || !order.OrderItems.Any())
+            foreach (var itemDto in orderDto.Items)
             {
-                _logger.LogWarning("Order does not contain any items.");
-                return BadRequest("Order must contain at least one item.");
-            }
-
-            foreach (var item in order.OrderItems)
-            {
-                if (item.Product == null)
+                order.Items.Add(new OrderItem
                 {
-                    _logger.LogWarning("Order item contains null product.");
-                    return BadRequest("Order items must contain a valid product.");
-                }
+                    OrderItemId = itemDto.OrderItemId,
+                    BillNo = itemDto.BillNo,
+                    ProductId = itemDto.ProductId,
+                    Quantity = itemDto.Quantity,
+                    Price = itemDto.Price,
+                    Discount = itemDto.Discount
+                });
             }
 
-            try
+            foreach (var paymentDto in orderDto.Payments)
             {
-                order.BillNo = await GenerateBillNumber();
-                order.OrderDate = DateTime.Now;
-                _logger.LogInformation("Creating order: {@Order}", order);
-
-                _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
-
-                return Ok(order);
+                order.Payments.Add(new Payment
+                {
+                    PaymentId = paymentDto.PaymentId,
+                    BillNo = paymentDto.BillNo,
+                    PaymentDate = paymentDto.PaymentDate,
+                    Amount = paymentDto.Amount,
+                    PaymentMethod = paymentDto.PaymentMethod
+                });
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while creating order.");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetOrderById), new { id = order.BillNo }, order);
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Order>> GetOrderById(string id)
+        {
+            var order = await _context.Orders.Include(o => o.Items)
+                                              .FirstOrDefaultAsync(o => o.BillNo == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return order;
+        }
+         
         private async Task<string> GenerateBillNumber()
         {
             var lastBillNumber = await GetLastBillNumber();
@@ -78,7 +97,7 @@ namespace DrawerPos.API.Controllers
             try
             {
                 var lastBillNumber = await _context.BillNumbers
-                    .OrderByDescending(b => b.Id)
+                    .OrderByDescending(b => b.BillNo)
                     .Select(b => b.BillNo)
                     .FirstOrDefaultAsync();
 
@@ -118,7 +137,7 @@ namespace DrawerPos.API.Controllers
             try
             {
                 var lastBillNo = await _context.BillNumbers
-                    .OrderByDescending(b => b.Id)
+                    .OrderByDescending(b => b.BillNo)
                     .Select(b => b.BillNo)
                     .FirstOrDefaultAsync();
 
@@ -142,7 +161,7 @@ namespace DrawerPos.API.Controllers
             try
             {
                 var orders = await _context.Orders
-                    .Include(o => o.OrderItems)
+                    .Include(o => o.Items)
                     .ThenInclude(oi => oi.Product)
                     .ToListAsync();
 
@@ -173,18 +192,18 @@ namespace DrawerPos.API.Controllers
                 }
 
                 var orders = await query
-                    .Include(o => o.OrderItems)
+                    .Include(o => o.Items)
                     .ThenInclude(oi => oi.Product)
                     .ToListAsync();
 
                 var groupedOrderItems = orders
-                    .SelectMany(o => o.OrderItems)
+                    .SelectMany(o => o.Items)
                     .GroupBy(oi => oi.Product)
                     .Select(g => new GroupedOrderItem
                     {
                         Products = g.Key,
-                        TotalQuantity = g.Sum(oi => oi.Quantity),
-                        TotalPrice = g.Sum(oi => (oi.Price ?? 0) * oi.Quantity)
+                        TotalQuantity = g.Sum(oi => oi.Quantity ?? 0),
+                        TotalPrice = g.Sum(oi => (oi.Price) * oi.Quantity ?? 0)
                     })
                     .OrderBy(g => g.Products.NameDisplay)
                     .ToList();
@@ -284,7 +303,7 @@ namespace DrawerPos.API.Controllers
         public int Month { get; set; }
         public decimal TotalAmount { get; set; }
     }
- 
+
     public class GroupedOrderItem
     {
         public Product Products { get; set; }

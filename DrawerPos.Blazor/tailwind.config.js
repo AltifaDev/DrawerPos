@@ -1,9 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 const colors = require('tailwindcss/colors');
- 
+const { addDynamicIconSelectors } = require('@iconify/tailwind')
 
 module.exports = {
     content: [
+        './pages/*.razor}',
         "./**/*.razor",
         "./**/*.html",
         "./**/*.cshtml",
@@ -110,5 +111,6 @@ module.exports = {
         require('flowbite/plugin'),
         require('tailwindcss-animated'),
         require('tailwindcss-filters'),
+        addDynamicIconSelectors(),
     ],
 }

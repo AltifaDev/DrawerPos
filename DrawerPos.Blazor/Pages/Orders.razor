@@ -1,0 +1,479 @@
+﻿@page "/orders"
+@using DrawerPos.Blazor.Services
+@using DrawerPos.Shared
+@using System.Globalization;
+@inject DrawerPos.Blazor.Services.ProductService ProductService
+@inject NavigationManager Navigation
+@inject SweetAlertService Swal
+@using Microsoft.JSInterop
+@using System.Text.Json
+@inject IJSRuntime JS
+@inject IOrderService OrderService
+
+<div class="mx-auto">
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    <div class="flex flex-col md:flex-row mt-4">
+        <!-- Left Side: Products -->
+        <div class="md:w-2/3 p-6">
+            <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+                <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="default-tab" role="tablist">
+                    @foreach (var category in categories)
+                    {
+                        <li class="mr-2" role="presentation">
+                            <button class="inline-block p-4 border-b-2 rounded-t-sm @(category == selectedCategory ? "border-blue-500" : "border-transparent")"
+                                    @onclick="() => SelectCategory(category)"
+                                    aria-selected="@(category == selectedCategory)">
+                                @category.CategoryName
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <div class="flex flex-wrap justify-between">
+                @if (products == null)
+                {
+                    <div>Loading products...</div>
+                }
+                else if (!filteredProducts.Any())
+                {
+                    <div role="status" class="animate-fade-up p-2 border border-gray-200 rounded shadow animate-pulse dark:border-gray-700 overflow-hidden" style="height:164px; width:120px">
+                        <div class="flex items-center justify-center mb-4 bg-gray-300 rounded dark:bg-gray-700" style="height:98px; width:98px">
+                            <svg class="w-full h-full text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 20">
+                                <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
+                                <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
+                            </svg>
+                        </div>
+                        <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-full mb-4"></div>
+                        <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
+                        <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
+                        <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700"></div>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var product in filteredProducts)
+                    {
+                        <button id="productlist" class="animate-fade-up product-item" @onclick="() => AddToCart(product)">
+                            <div class="relative flex flex-col items-center bg-white border rounded-lg hover:shadow-lg p-2 w-24 h-24 @(Cart.Any(item => item.Product.ProductId == product.ProductId) ? "border-blue-500 border-2" : "border-gray-200")">
+                                <div class="w-full h-full overflow-hidden">
+                                    <img src="@($"data:image/png;base64,{product.Image}")" alt="@product.ProductName" class="w-full h-full object-contain">
+                                </div>
+                                <div class="absolute bottom-0 right-0 bg-gray-100 w-8 rounded">
+                                    <span class="text-xs text-gray-500 font-semibold">@product.ProductSize</span>
+                                </div>
+                                @if (Cart.Any(item => item.Product.ProductId == product.ProductId))
+                                {
+                                    <div class="absolute top-0 left-0 bg-blue-500 w-8 rounded-br-lg">
+                                        <span class="text-xs text-white">@Cart.First(item => item.Product.ProductId == product.ProductId).Quantity</span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="text-center mt-2">
+                                <p class="text-xs font-bold">@product.NameDisplay</p>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">@product.ProductName</span>
+                                <p class="text-sm font-semibold">@product.Price.ToString("C")</p>
+                            </div>
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+        <EditForm id="order-form" Model="order" OnValidSubmit="HandleValidSubmit" class="md:w-1/3">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="animate-fade-up border-none w-full rounded mt-2">
+                <div class="absolute w-full overflow-auto p-6 rounded-lg" style="height:400px;background: linear-gradient(190deg, rgba(224,222,222,1) 0%, rgba(251,251,251,1) 80%, rgba(255,255,255,1) 100%);">
+                    <div class="p-2 mx-auto ml-1 mb-2 w-full h-14">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="ml-2">
+                                <h2 class="text-md font-semibold">Order List</h2>
+                                <p class="text-sm text-gray-500">Transaction @lastBillNo</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="bg-gray-200 p-1 rounded-full hover:bg-gray-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </button>
+                                <button class="bg-gray-200 p-1 rounded-full hover:bg-gray-300" @onclick="RemoveAllFromCart">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @foreach (var item in Cart)
+                    {
+                        <div id="orderlist" class="animate-fade-up relative text-black p-2 border-gray-300 rounded-lg shadow-lg flex flex-col items-center w-full ml-1 mb-2 transition-max-height duration-300"
+                             @onclick="() => SelectItem(item)"
+                             style="@(selectedItem == item ? "max-height: 300px; background-color: #353535; color:#ffffff" : "max-height: 80px; background-color: #ffffff; color:#000000")">
+                            <div class="flex w-full items-start justify-between">
+                                <div class="w-14 h-14 overflow-hidden">
+                                    <img src="@($"data:image/png;base64,{item.Product.Image}")" alt="@item.Product.ProductName" class="w-full h-full object-contain">
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <span class="text-sm mt-2">@item.Product.ProductName (@item.Product.ProductSize)</span>
+                                    <span class="text-md font-bold">@item.TotalPrice.ToString("0.##") ฿</span>
+                                </div>
+                                <div class="flex flex-col items-center mt-0 md:mb-0 md:mr-4">
+                                    <button class="bg-gray-600 hover:bg-gray-500 rounded-full mt-0.5" @onclick="() => UpdateQuantity(item, 1)">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path>
+                                        </svg>
+                                    </button>
+                                    <span class="text-sm font-bold">@item.Quantity</span>
+                                    <button class="bg-gray-600 hover:bg-gray-500 rounded-full mb-0.5" @onclick="() => UpdateQuantity(item, -1)">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            @if (selectedItem == item)
+                            {
+                                <div class="flex justify-between w-full mt-4 space-x-4 animate-fade-down animate-ease-in">
+                                    <button class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200 text-white shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800">Note</button>
+                                    <button class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200  text-white shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800">Discount</button>
+                                    <button class="py-2 px-2 w-full inline-flex justify-center items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200  text-white shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800" @onclick="() => RemoveFromCart(item)">Remove</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="absolute border-none p-6 blur-bg w-full" style="top:390px">
+                    <div class="flex items-center justify-between hidden">
+                        <span class="font-medium">Quantity:</span>
+                        <span class="font-semibold">@Cart.Sum(item => item.Quantity).ToString()</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">Sub Total:</span>
+                        <span class="font-semibold">@SubTotal.ToString("C", customThaiCulture)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">Discount:</span>
+                        <span class="font-semibold">@Discount.ToString("C", customThaiCulture)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">Amount</span>
+                        <input type="text" id="balance-display" class="font-semibold text-end border-none h-7 w-full" style="text-align:right; padding-right:0" />
+                    </div>
+                    <div class="flex items-center justify-between hidden">
+                        <span class="font-medium">Tax:</span>
+                        <span class="font-semibold">@Tax.ToString("C", customThaiCulture)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold">Total:</span>
+                        <span class="font-semibold text-blue-500">@Total.ToString("C", customThaiCulture)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold">Payment Method</span>
+                        <input type="text" @bind="paymentMethod" id="payment-method" class="font-semibold text-end border-none h-7 w-full" style="text-align:right; padding-right:0" />
+                    </div>
+                    <hr class="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700">
+                    <div class="flex items-center">
+                        <span class="text-gray-500">Payment Method</span>
+                    </div>
+                    <div class="flex items-center mt-2">
+                        <button type="button" class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2"
+                                onclick="toggleDrawer()"
+                                data-drawer-target="drawer-right"
+                                data-drawer-show="drawer-right"
+                                data-drawer-placement="right"
+                                data-drawer-backdrop="true"
+                                aria-controls="drawer-right">
+                            <div class="flex flex-col items-center">
+                                <span>Cash</span>
+                            </div>
+                        </button>
+
+                        @if (order.Items.Sum(item => item.Quantity) == 0)
+                        {
+                            <button type="button" id="qrpay-Reject" class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
+                                <div class="flex flex-col items-center">
+                                    <span>QrPay</span>
+                                </div>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" id="qrpay-button" class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
+                                <div class="flex flex-col items-center">
+                                    <span>QrPay</span>
+                                </div>
+                            </button>
+                        }
+                        <button type="submit" id="card-button" @onclick="SetPaymentMethodToCard" class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
+                            <div class="flex flex-col items-center">
+                                <span>Card</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+<div id="drawer-backdrop" class="drawer closed top-2.5 absolute h-full shadow-lg" tabindex="-1" aria-labelledby="drawer-backdrop-label">
+    <h5 class="inline-flex items-center mb-4text-base font-semibold text-gray-500 dark:text-gray-400">
+        <svg class="w-4 h-4 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+        </svg>
+        Bottom drawer
+    </h5>
+    <button type="button" onclick="toggleDrawer()" aria-controls="drawer-backdrop" data-drawer-hide="drawer-backdrop" class="text-gray-400 bg-transparent hover: hover:text-gray-900 rounded-lg text-sm w-8 h-8 absolute top-2.5 end-2.5 inline-flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white">
+        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+        </svg>
+        <span class="sr-only">Close menu</span>
+    </button>
+    <div class="p-4 w-full bg-white mt-10 bottom-0">
+        <input id="balancedisplay" type="text" class="text-center text-xl font-bold py-4 mb-6 w-full text-gray-500 dark:text-gray-400" readonly value="0 ฿" />
+        <div class="grid grid-cols-4 gap-2">
+            <!--<button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(7)">7</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(8)">8</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(9)">9</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(100)">100</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(4)">4</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(5)">5</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(6)">6</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(500)">500</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(1)">1</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(2)">2</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(3)">3</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(1000)">1000</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked('00')">00</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked(0)">0</button>
+            <button class="py-4 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 text-xl font-semibold" onclick="buttonClicked('back')">&lt;</button>
+            <button class="bg-red-200 py-4 rounded text-xl font-semibold text-red-600" onclick="buttonClicked('C')">C</button>-->
+        </div>
+        <button id="open-drawer-button" type="button" class="w-full text-center inline-flex items-center px-4 py-4 mt-4 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+            <span>Open Drawer </span>
+            <svg class="rtl:rotate-180 w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    function toggleDrawer() {
+        var drawer = document.getElementById('drawer-backdrop');
+        drawer.classList.toggle('open');
+    }
+</script>
+@code {
+    private OrderDTO orderDto = new OrderDTO();
+    private List<OrderItemDTO> CartOrder = new List<OrderItemDTO>();
+    private string lastBillNo;
+    private Payment payment = new Payment();
+    private Order order = new Order { Items = new List<OrderItem>() };
+    private List<CartItem> Cart = new List<CartItem>();
+    private List<Product> products = new List<Product>();
+    private List<Product> filteredProducts = new List<Product>();
+    private List<Category> categories = new List<Category>();
+    private Category selectedCategory;
+    private CartItem selectedItem;
+    private decimal Tax => 0;
+    private decimal Total => (SubTotal + Discount) + Tax;
+    private decimal CartTotal => Cart.Sum(item => item.TotalPrice);
+    private decimal CartDiscountTotal => Cart.Sum(item => item.Discount);
+    private decimal SubTotal => CartTotal - CartDiscountTotal;
+    private decimal Discount => CartDiscountTotal;
+
+    private CultureInfo customThaiCulture;
+    private string errorMessage;
+    private string paymentMethod;
+
+    bool isDrawerOpen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = (await ProductService.GetProducts()).ToList();
+        categories = (await ProductService.GetCategories()).ToList();
+        order = new Order { Items = new List<OrderItem>() };
+        if (categories.Any())
+        {
+            selectedCategory = categories.First();
+            FilterProducts();
+        }
+
+        customThaiCulture = new CultureInfo("th-TH");
+        customThaiCulture.NumberFormat.CurrencyPositivePattern = 3;
+        customThaiCulture.NumberFormat.CurrencyNegativePattern = 12;
+
+        try
+        {
+            lastBillNo = await OrderService.GetLastBillNoAsync();
+        }
+        catch (HttpRequestException ex) when (ex.Message.Contains("404"))
+        {
+            lastBillNo = "N/A";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error fetching last bill number: {ex.Message}";
+        }
+    }
+    private void SetPaymentMethodToCard()
+    {
+        paymentMethod = "Card";
+    }
+    private void RemoveAllFromCart()
+    {
+        order.Items.Clear();
+        UpdateOrderTotals();
+    }
+
+    private void AddToCart(Product product)
+    {
+        var cartItem = Cart.FirstOrDefault(c => c.Product.ProductId == product.ProductId);
+
+        if (cartItem == null)
+        {
+            Cart.Add(new CartItem { Product = product, Quantity = 1, TotalPrice = product.Price });
+        }
+        else
+        {
+            cartItem.Quantity++;
+            cartItem.TotalPrice += product.Price;
+        }
+
+        order.Items = Cart.Select(ci => OrderHelper.ToOrderItem(ci)).ToList();
+        UpdateOrderTotals(); // Update totals when adding to cart
+        StateHasChanged();
+    }
+
+    private void SelectItem(CartItem item)
+    {
+        selectedItem = selectedItem == item ? null : item;
+        StateHasChanged();
+    }
+
+    private void UpdateQuantity(CartItem item, int change)
+    {
+        item.Quantity += change;
+        if (item.Quantity <= 0)
+        {
+            Cart.Remove(item);
+            var orderItemToRemove = order.Items.FirstOrDefault(oi => oi.ProductId == item.Product.ProductId);
+            if (orderItemToRemove != null)
+            {
+                order.Items.Remove(orderItemToRemove);
+            }
+        }
+        else
+        {
+            item.TotalPrice = item.Product.Price * item.Quantity;
+        }
+        UpdateOrderTotals();
+    }
+
+    private void RemoveFromCart(CartItem item)
+    {
+        Cart.Remove(item);
+        var orderItemToRemove = order.Items.FirstOrDefault(oi => oi.ProductId == item.Product.ProductId);
+        if (orderItemToRemove != null)
+        {
+            order.Items.Remove(orderItemToRemove);
+        }
+        UpdateOrderTotals();
+    }
+
+    private void UpdateOrderTotals()
+    {
+        if (order != null)
+        {
+            order.SubTotal = Cart.Sum(item => item.TotalPrice);
+            order.Discount = CartDiscountTotal;
+            order.Total = SubTotal + Tax; // Add tax if applicable
+        }
+    }
+
+    private void SelectCategory(Category category)
+    {
+        selectedCategory = category;
+        FilterProducts();
+    }
+
+    private void FilterProducts()
+    {
+        if (selectedCategory != null)
+        {
+            filteredProducts = products.Where(p => p.CategoryId == selectedCategory.CategoryId).ToList();
+        }
+        else
+        {
+            filteredProducts = products;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (order == null || order.Items == null || string.IsNullOrWhiteSpace(paymentMethod))
+        {
+            // Handle null values as before
+            return;
+        }
+
+        order.PaymentMethod = paymentMethod;
+
+        orderDto.BillNo = lastBillNo;
+        orderDto.Items = Cart.Select(ci => new OrderItemDTO
+            {
+                BillNo = lastBillNo,
+                ProductId = ci.Product.ProductId,
+                Quantity = ci.Quantity,
+                Price = ci.Product.Price * ci.Quantity,
+                Discount = 0 // Or calculate the discount
+            }).ToList();
+        orderDto.OrderDate = DateTime.Now;
+        orderDto.Discount = order.TotalDiscount;
+        orderDto.PaymentMethod = order.PaymentMethod;
+        orderDto.SubTotal = order.SubTotal;
+        orderDto.Total = order.Total;
+
+        if (orderDto.Payments == null)
+        {
+            orderDto.Payments = new List<PaymentDTO>();
+        }
+
+        var paymentDto = new PaymentDTO
+            {
+                BillNo = lastBillNo,
+                PaymentDate = DateTime.Now,
+                Amount = orderDto.Total.GetValueOrDefault(),
+                PaymentMethod = orderDto.PaymentMethod
+            };
+
+        orderDto.Payments.Add(paymentDto);
+
+
+        try
+        {
+            var response = await OrderService.CreateOrder(orderDto);
+
+            if (response.IsSuccessStatusCode) // Move clearing inside this block
+            {
+                // Clear the form and cart only after successful submission
+                order = new Order { Items = new List<OrderItem>() };
+                paymentMethod = "";
+                Cart.Clear();
+
+                StateHasChanged();
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error creating order: {errorContent}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An unexpected error occurred: {ex.Message}";
+        }
+    }
+}

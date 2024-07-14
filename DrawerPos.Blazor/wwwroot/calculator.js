@@ -1,11 +1,31 @@
-﻿// Orders.js
-window.getBalanceValue = function () {
-    return document.getElementById('balance-display').value;
-}
-window.showCalculator = function (total) {
-    // Your showCalculator function implementation here
-    console.log("Calculator opened with total: " + total);
+﻿window.registerBlazorMethods = function (dotNetHelper) {
+    window.dotNetHelper = dotNetHelper;
 };
+
+function callUpdateBalanceView(amountDue) {
+    const balanceDisplay = document.getElementById('balance-display');
+    let balanceValue = balanceDisplay.value.replace('฿', '').replace(/,/g, '').trim();
+    balanceValue = parseFloat(balanceValue);
+
+    if (balanceValue >= amountDue) {
+        Swal.fire({
+            icon: "success",
+            title: `เงินทอน ${formatCurrency(balanceValue - amountDue)}`,
+            text: "ชำระเงินสำเร็จ!",
+        });
+
+        window.dotNetHelper.invokeMethodAsync('HandleValidSubmit');
+    } else {
+        Swal.fire({
+            icon: "error",
+            title: "ยอดเงินไม่เพียงพอ",
+            text: `ยอดเงินที่ต้องชำระ ${formatCurrency(amountDue)} แต่คุณมี ${formatCurrency(balanceValue)}`
+        });
+    }
+
+    window.dotNetHelper.invokeMethodAsync('StaticUpdateBalanceView');
+}
+
 function formatCurrency(value) {
     let formattedValue = parseFloat(value).toLocaleString('th-TH', {
         style: 'decimal',
@@ -14,6 +34,14 @@ function formatCurrency(value) {
     return formattedValue + ' ฿';
 }
 
+window.getBalanceValue = function () {
+    return document.getElementById('balance-display').value;
+}
+
+window.showCalculator = function (total) {
+    console.log("Calculator opened with total: " + total);
+};
+
 function NotCalculator() {
     Swal.fire({
         icon: "error",
@@ -21,6 +49,7 @@ function NotCalculator() {
         text: "กรุณาเลือกสินค้า ก่อนชำระเงิน!",
     });
 }
+
 window.showNumber = function (amountDue) {
     Swal.fire({
         html: `
@@ -96,14 +125,10 @@ window.showNumber = function (amountDue) {
     });
 }
 
- 
 function updateBalanceView() {
     const balanceDisplay = document.getElementById('balance-display').value;
     const paymentMethod = "Cash";
 
     document.getElementById('balance-display').value = balanceDisplay;
     document.getElementById('payment-method').value = paymentMethod;
-  
 }
-
- 

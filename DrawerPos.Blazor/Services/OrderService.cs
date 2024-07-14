@@ -8,258 +8,259 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using DrawerPos.Shared;
-
+ 
 namespace DrawerPos.Blazor.Services
-{
-    public class OrderService
     {
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<OrderService> _logger;
-
-        public OrderService(HttpClient httpClient, ILogger<OrderService> logger)
+        public class OrderService : IOrderService
         {
-            _httpClient = httpClient;
-            _logger = logger;
-        }
+            private readonly HttpClient _httpClient;
+            private readonly ILogger<OrderService> _logger;
 
-        public async Task<IEnumerable<Order>> GetOrders()
-        {
-            try
+            public OrderService(HttpClient httpClient, ILogger<OrderService> logger)
             {
-                var response = await _httpClient.GetAsync("api/orders");
-                response.EnsureSuccessStatusCode();
+                _httpClient = httpClient;
+                _logger = logger;
+            }
 
-                var options = new JsonSerializerOptions
+            public async Task<IEnumerable<Order>> GetOrders()
+            {
+                try
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    ReferenceHandler = ReferenceHandler.Preserve
-                };
+                    var response = await _httpClient.GetAsync("api/orders");
+                    response.EnsureSuccessStatusCode();
 
-                return await response.Content.ReadFromJsonAsync<IEnumerable<Order>>(options);
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError($"Request error: {ex.Message}");
-                throw;
-            }
-            catch (NotSupportedException ex) // When content type is not valid
-            {
-                _logger.LogError($"The content type is not supported: {ex.Message}");
-                throw;
-            }
-            catch (JsonException ex) // Invalid JSON
-            {
-                _logger.LogError($"Invalid JSON: {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Unexpected error: {ex.Message}");
-                throw;
-            }
-        }
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        ReferenceHandler = ReferenceHandler.Preserve
+                    };
 
-        public async Task<List<GroupedOrderItem>> GetDateOrders(DateTime? startDate, DateTime? endDate)
-        {
-            var query = new Dictionary<string, string>();
-
-            if (startDate.HasValue)
-            {
-                query["startDate"] = startDate.Value.ToString("yyyy-MM-dd");
-            }
-
-            if (endDate.HasValue)
-            {
-                query["endDate"] = endDate.Value.ToString("yyyy-MM-dd");
-            }
-
-            var queryString = string.Join("&", query.Select(kvp => $"{kvp.Key}={kvp.Value}"));
-            var uri = $"api/orders/GetDateOrders?{queryString}";
-
-            try
-            {
-                _logger.LogInformation($"Requesting data from: {uri}");
-                var response = await _httpClient.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<List<GroupedOrderItem>>();
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError($"Request error: {ex.Message}");
-                throw;
-            }
-        }
-
-        public async Task<IEnumerable<MonthlyRevenueDto>> GetMonthlyRevenue()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync("api/orders/monthly-revenue");
-                response.EnsureSuccessStatusCode();
-
-                var options = new JsonSerializerOptions
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<Order>>(options);
+                }
+                catch (HttpRequestException ex)
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    ReferenceHandler = ReferenceHandler.Preserve
-                };
-
-                return await response.Content.ReadFromJsonAsync<IEnumerable<MonthlyRevenueDto>>(options);
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError($"Request error: {ex.Message}");
-                return Array.Empty<MonthlyRevenueDto>();
-            }
-            catch (NotSupportedException ex) // When content type is not valid
-            {
-                _logger.LogError($"The content type is not supported: {ex.Message}");
-                return Array.Empty<MonthlyRevenueDto>();
-            }
-            catch (JsonException ex) // Invalid JSON
-            {
-                _logger.LogError($"Invalid JSON: {ex.Message}");
-                return Array.Empty<MonthlyRevenueDto>();
-            }
-        }
-
-        // Method to create an order
-        public async Task CreateOrder(Order order)
-        {
-            try
-            {
-                // Validate the order object
-                if (order == null)
+                    _logger.LogError($"Request error: {ex.Message}");
+                    throw;
+                }
+                catch (NotSupportedException ex) // When content type is not valid
                 {
-                    _logger.LogError("Order object is null.");
-                    throw new ArgumentNullException(nameof(order));
+                    _logger.LogError($"The content type is not supported: {ex.Message}");
+                    throw;
+                }
+                catch (JsonException ex) // Invalid JSON
+                {
+                    _logger.LogError($"Invalid JSON: {ex.Message}");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Unexpected error: {ex.Message}");
+                    throw;
+                }
+            }
+
+            public async Task<List<GroupedOrderItem>> GetDateOrders(DateTime? startDate, DateTime? endDate)
+            {
+                var query = new Dictionary<string, string>();
+
+                if (startDate.HasValue)
+                {
+                    query["startDate"] = startDate.Value.ToString("yyyy-MM-dd");
                 }
 
-                _logger.LogInformation($"Creating order: {JsonSerializer.Serialize(order)}");
+                if (endDate.HasValue)
+                {
+                    query["endDate"] = endDate.Value.ToString("yyyy-MM-dd");
+                }
 
+                var queryString = string.Join("&", query.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+                var uri = $"api/orders/GetDateOrders?{queryString}";
+
+                try
+                {
+                    _logger.LogInformation($"Requesting data from: {uri}");
+                    var response = await _httpClient.GetAsync(uri);
+                    response.EnsureSuccessStatusCode();
+                    return await response.Content.ReadFromJsonAsync<List<GroupedOrderItem>>();
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError($"Request error: {ex.Message}");
+                    throw;
+                }
+            }
+
+            public async Task<IEnumerable<MonthlyRevenueDto>> GetMonthlyRevenue()
+            {
+                try
+                {
+                    var response = await _httpClient.GetAsync("api/orders/monthly-revenue");
+                    response.EnsureSuccessStatusCode();
+
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        ReferenceHandler = ReferenceHandler.Preserve
+                    };
+
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<MonthlyRevenueDto>>(options);
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError($"Request error: {ex.Message}");
+                    return Array.Empty<MonthlyRevenueDto>();
+                }
+                catch (NotSupportedException ex) // When content type is not valid
+                {
+                    _logger.LogError($"The content type is not supported: {ex.Message}");
+                    return Array.Empty<MonthlyRevenueDto>();
+                }
+                catch (JsonException ex) // Invalid JSON
+                {
+                    _logger.LogError($"Invalid JSON: {ex.Message}");
+                    return Array.Empty<MonthlyRevenueDto>();
+                }
+            }
+
+        public async Task<HttpResponseMessage> CreateOrder(OrderDTO order)
+        {
+            try
+            {
                 var response = await _httpClient.PostAsJsonAsync("api/orders", order);
+               
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError($"Error creating order. Status Code: {response.StatusCode}, Response: {responseContent}");
-                    response.EnsureSuccessStatusCode(); // This will throw an exception
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Error creating order: {response.StatusCode} - {errorContent}");
                 }
 
-                _logger.LogInformation("Order created successfully.");
+                return response;
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "Error creating order. Message: {Message}", ex.Message);
-                throw;
+                _logger.LogError(ex, "HttpRequestException while creating order");
+                throw; // Rethrow the exception to be handled higher up if needed
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while creating order. Message: {Message}", ex.Message);
-                throw;
+                _logger.LogError(ex, "Unexpected error while creating order");
+                throw; // Rethrow the exception to be handled higher up if needed
             }
         }
+        public async Task<HttpResponseMessage> CreateOrderItems(List<OrderItemDTO> orderItems)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/orderitems", orderItems);
+           
+            response.EnsureSuccessStatusCode(); // Or implement your own error handling
+            return response;
+        }
 
-        // Method to fetch the last generated BillNo
+        public async Task<HttpResponseMessage> CreatePayment(PaymentDTO payment)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/payments", payment);
+            response.EnsureSuccessStatusCode(); // Or implement your own error handling
+            return response;
+        }
         public async Task<string> GetLastBillNoAsync()
-        {
-            try
             {
-                var response = await _httpClient.GetAsync("api/orders/last-billno");
-                _logger.LogInformation($"Received response: {response.StatusCode}");
-                response.EnsureSuccessStatusCode();
-                var responseBody = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation($"Response body: {responseBody}");
-                return responseBody;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, $"Error fetching last BillNo. Status code: {ex.StatusCode}, Response: {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Unexpected error: {ex.Message}");
-                throw;
-            }
-        }
-
-        // Method to fetch the most recent order
-        public async Task<Order> GetMostRecentOrder()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync("api/orders/most-recent");
-                response.EnsureSuccessStatusCode();
-
-                var options = new JsonSerializerOptions
+                try
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    ReferenceHandler = ReferenceHandler.Preserve
-                };
-
-                return await response.Content.ReadFromJsonAsync<Order>(options);
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError($"Request error: {ex.Message}");
-                throw;
-            }
-            catch (NotSupportedException ex) // When content type is not valid
-            {
-                _logger.LogError($"The content type is not supported: {ex.Message}");
-                throw;
-            }
-            catch (JsonException ex) // Invalid JSON
-            {
-                _logger.LogError($"Invalid JSON: {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Unexpected error: {ex.Message}");
-                throw;
-            }
-        }
-
-        public async Task<WeeklyMonthlyRevenueDto> GetWeeklyMonthlyRevenue()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync("api/orders/weekly-monthly-revenue");
-                response.EnsureSuccessStatusCode();
-
-                var options = new JsonSerializerOptions
+                    var response = await _httpClient.GetAsync("api/orders/last-billno");
+                    _logger.LogInformation($"Received response: {response.StatusCode}");
+                    response.EnsureSuccessStatusCode();
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Response body: {responseBody}");
+                    return responseBody;
+                }
+                catch (HttpRequestException ex)
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    ReferenceHandler = ReferenceHandler.Preserve
-                };
+                    _logger.LogError(ex, $"Error fetching last BillNo. Status code: {ex.StatusCode}, Response: {ex.Message}");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Unexpected error: {ex.Message}");
+                    throw;
+                }
+            }
 
-                return await response.Content.ReadFromJsonAsync<WeeklyMonthlyRevenueDto>(options);
-            }
-            catch (HttpRequestException ex)
+            public async Task<Order> GetMostRecentOrder()
             {
-                _logger.LogError($"Request error: {ex.Message}");
-                throw; // Propagate the exception to handle it higher up in the call stack
+                try
+                {
+                    var response = await _httpClient.GetAsync("api/orders/most-recent");
+                    response.EnsureSuccessStatusCode();
+
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        ReferenceHandler = ReferenceHandler.Preserve
+                    };
+
+                    return await response.Content.ReadFromJsonAsync<Order>(options);
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError($"Request error: {ex.Message}");
+                    throw;
+                }
+                catch (NotSupportedException ex) // When content type is not valid
+                {
+                    _logger.LogError($"The content type is not supported: {ex.Message}");
+                    throw;
+                }
+                catch (JsonException ex) // Invalid JSON
+                {
+                    _logger.LogError($"Invalid JSON: {ex.Message}");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Unexpected error: {ex.Message}");
+                    throw;
+                }
             }
-            catch (NotSupportedException ex) // When content type is not valid
+
+            public async Task<WeeklyMonthlyRevenueDto> GetWeeklyMonthlyRevenue()
             {
-                _logger.LogError($"The content type is not supported: {ex.Message}");
-                throw;
-            }
-            catch (JsonException ex) // Invalid JSON
-            {
-                _logger.LogError($"Invalid JSON: {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Unexpected error: {ex.Message}");
-                throw; // Propagate the exception for centralized error handling
+                try
+                {
+                    var response = await _httpClient.GetAsync("api/orders/weekly-monthly-revenue");
+                    response.EnsureSuccessStatusCode();
+
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        ReferenceHandler = ReferenceHandler.Preserve
+                    };
+
+                    return await response.Content.ReadFromJsonAsync<WeeklyMonthlyRevenueDto>(options);
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError($"Request error: {ex.Message}");
+                    throw; // Propagate the exception to handle it higher up in the call stack
+                }
+                catch (NotSupportedException ex) // When content type is not valid
+                {
+                    _logger.LogError($"The content type is not supported: {ex.Message}");
+                    throw;
+                }
+                catch (JsonException ex) // Invalid JSON
+                {
+                    _logger.LogError($"Invalid JSON: {ex.Message}");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Unexpected error: {ex.Message}");
+                    throw; // Propagate the exception for centralized error handling
+                }
             }
         }
-
-        // Other methods...
     }
+
 
     public class WeeklyMonthlyRevenueDto
     {
@@ -279,4 +280,4 @@ namespace DrawerPos.Blazor.Services
         public int Month { get; set; }
         public decimal TotalAmount { get; set; }
     }
-}
+ 

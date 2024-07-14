@@ -1,7 +1,10 @@
-﻿window.renderChart = (canvasId, configJson) => {
-    var ctx = document.getElementById(canvasId).getContext('2d');
-    var config = JSON.parse(configJson);
-    new Chart(ctx, config);
+﻿window.renderChart = (canvasId, config) => {
+    var ctx = document.getElementById(canvasId)?.getContext('2d');
+    if (ctx) {
+        new Chart(ctx, JSON.parse(config));
+    } else {
+        console.error(`Canvas element with id '${canvasId}' not found.`);
+    }
 };
 
 function renderChart() {
