@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace DrawerPos.Shared
 {
 
-    public partial class BillNumber
+    public class BillNumber
     {
+        [Key]
         public int BillNumberId { get; set; }
-
-        public string? BillNo { get; set; }
-
-        public string? OrderId { get; set; }
+        public string BillNo { get; set; }
+       
     }
 }

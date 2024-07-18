@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using DrawerPos.Shared;
- 
+using System.Net;
+using System.Data.SqlTypes;
+
 namespace DrawerPos.Blazor.Services
     {
         public class OrderService : IOrderService
@@ -121,14 +123,24 @@ namespace DrawerPos.Blazor.Services
                     return Array.Empty<MonthlyRevenueDto>();
                 }
             }
-
         public async Task<HttpResponseMessage> CreateOrder(OrderDTO order)
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/orders", order);
-               
+                // Step 1: Validate OrderDTO for Null Values (Remains the same)
+                if (order == null || !IsValidOrderDTO(order))
+                {
+                    _logger.LogError("Null or invalid OrderDTO received for creation.");
+                    return new HttpResponseMessage(HttpStatusCode.BadRequest)
+                    {
+                        Content = new StringContent("Invalid order data.")
+                    };
+                }
 
+                // Step 2: Proceed with Order Creation (Assuming it's Valid)
+                var response = await _httpClient.PostAsJsonAsync("api/orders", order);
+
+                // Step 3: Handle Potential HTTP Errors (Remains the same)
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
@@ -137,16 +149,39 @@ namespace DrawerPos.Blazor.Services
 
                 return response;
             }
+
+            // Step 4: Exception Handling with Type Checking and Specific Logging (Modified)
             catch (HttpRequestException ex)
             {
+                // Log the full exception details
                 _logger.LogError(ex, "HttpRequestException while creating order");
-                throw; // Rethrow the exception to be handled higher up if needed
+
+                // Re-throw the exception so the Blazor component can handle it
+                throw;
             }
+            catch (Exception ex) when (ex.InnerException is SqlNullValueException) // Check for SqlNullValueException
+            {
+                // Log the specific SQL null value exception details
+                _logger.LogError(ex, "SqlNullValueException while creating order");
+
+                // Throw a custom exception with a user-friendly message
+                throw new Exception("Error creating order: A required database value is missing.", ex);
+            }
+
+            //Step 5: Catch-all for Other Unexpected Errors
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while creating order");
-                throw; // Rethrow the exception to be handled higher up if needed
+                throw new Exception("An unexpected error occurred while creating the order.", ex);
             }
+        }
+         
+        // Helper Method to Validate OrderDTO for Null Values
+        private bool IsValidOrderDTO(OrderDTO order)
+        {
+            // Check for null values in critical properties, including nested objects
+            return order != null && order.Items != null && order.Items.All(i => i.BillNo != null && i.ProductId != null)
+                && order.Payments != null && order.Payments.All(p => p.BillNo != null);
         }
         public async Task<HttpResponseMessage> CreateOrderItems(List<OrderItemDTO> orderItems)
         {

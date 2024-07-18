@@ -45,11 +45,9 @@ namespace DrawerPos.Data
         {
             modelBuilder.Entity<BillNumber>(entity =>
             {
-                entity.HasIndex(e => e.OrderId, "IX_BillNumbers_OrderId");
-
                 entity.Property(e => e.BillNumberId).HasColumnName("BillNumberID");
                 entity.Property(e => e.BillNo).HasMaxLength(50);
-                entity.Property(e => e.OrderId).HasMaxLength(10);
+                
             });
 
             modelBuilder.Entity<Category>(entity =>

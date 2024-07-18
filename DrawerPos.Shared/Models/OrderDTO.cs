@@ -8,7 +8,7 @@ namespace DrawerPos.Shared
 {
     public class OrderDTO
     {
-        public Guid OrderID { get; set; }
+        public int OrderID { get; set; }
         public string BillNo { get; set; }
         public int? CustomerId { get; set; }
         public int? StoreId { get; set; }

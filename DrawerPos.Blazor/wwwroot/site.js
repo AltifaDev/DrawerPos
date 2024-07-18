@@ -46,3 +46,15 @@ window.toggleSidebar = function () {
     sidebar.style.width = isOpen ? '5rem' : '16rem';
     return !isOpen;
 };
+function toggleDrawer() {
+    var drawer = document.getElementById('drawer-right');
+    var backdrop = document.getElementById('drawer-backdrop');
+
+    if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        backdrop.classList.remove('hidden');
+    } else {
+        drawer.classList.add('hidden');
+        backdrop.classList.add('hidden');
+    }
+}

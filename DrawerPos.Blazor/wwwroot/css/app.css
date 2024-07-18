@@ -192,4 +192,22 @@ code {
         transform: translateX(0);
         opacity: 1;
     }
- 
+
+.drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 999; /* Ensure it covers other elements */
+    display: none; /* Initially hidden */
+}
+
+.drawer.visible {
+    display: block; /* Show the drawer */
+}
+
+.drawer-backdrop.visible {
+    display: block; /* Show the backdrop */
+}

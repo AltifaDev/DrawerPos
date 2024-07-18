@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Data.SqlTypes;
 
 namespace DrawerPos.API.Controllers
 {
@@ -23,6 +24,7 @@ namespace DrawerPos.API.Controllers
             _context = context;
             _logger = logger;
         }
+
         [HttpPost]
         public async Task<ActionResult<Order>> CreateOrder(OrderDTO orderDto)
         {
@@ -83,7 +85,7 @@ namespace DrawerPos.API.Controllers
 
             return order;
         }
-         
+
         private async Task<string> GenerateBillNumber()
         {
             var lastBillNumber = await GetLastBillNumber();
@@ -101,12 +103,18 @@ namespace DrawerPos.API.Controllers
                     .Select(b => b.BillNo)
                     .FirstOrDefaultAsync();
 
-                return lastBillNumber ?? "#00000000";
+                // Handle null lastBillNumber and invalid format
+                if (string.IsNullOrEmpty(lastBillNumber) || !lastBillNumber.StartsWith("#"))
+                {
+                    return "#00000000"; // Start with a default value
+                }
+
+                return lastBillNumber;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching last BillNo.");
-                throw new Exception("Internal server error while fetching last BillNo.");
+                throw new Exception("Internal server error while fetching last BillNo."); // Re-throw for consistent error handling
             }
         }
 
@@ -126,10 +134,63 @@ namespace DrawerPos.API.Controllers
 
         private async Task UpdateLastBillNumber(string newBillNumber)
         {
-            var billNumber = new BillNumber { BillNo = newBillNumber };
-            _context.BillNumbers.Add(billNumber);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var existingBillNumber = await _context.BillNumbers.FirstOrDefaultAsync();
+
+                // *** Check if existingBillNumber is null ***
+                if (existingBillNumber == null)
+                {
+                    _context.BillNumbers.Add(new BillNumber { BillNo = newBillNumber });
+                }
+                else
+                {
+                    // ... (your existing update logic) ...
+
+                    existingBillNumber.BillNo = newBillNumber;
+                    _context.BillNumbers.Update(existingBillNumber);
+                }
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // Handle concurrency conflict (e.g., retry, log, or inform the user)
+                    _logger.LogWarning("Concurrency conflict detected while updating last BillNo. Retrying...");
+
+                    // Option 1: Retry the update (consider limiting the number of retries)
+                    await UpdateLastBillNumber(newBillNumber); // Recursively retry
+
+                    // Option 2: Log and return an error
+                    // _logger.LogError("Concurrency conflict resolved by not updating.");
+                    // throw new Exception("Internal server error: Concurrency conflict while updating bill number.");
+                }
+
+                // Explicitly reload the entity to ensure the updated value is fetched from the database
+                await _context.Entry(existingBillNumber).ReloadAsync();
+
+                // Validation after saving and reloading
+                if (existingBillNumber == null || string.IsNullOrEmpty(existingBillNumber.BillNo))
+                {
+                    _logger.LogError("BillNo is still null or empty after updating and reloading.");
+                    throw new Exception("Internal server error: Failed to update bill number.");
+                }
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Catch specific database update exceptions
+                _logger.LogError(dbEx, "Database error occurred while updating last BillNo.");
+                throw new Exception("Internal server error: Database error while updating bill number.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error occurred while updating last BillNo.");
+                throw new Exception("Internal server error: Unexpected error while updating bill number.");
+            }
         }
+
 
         [HttpGet("last-billno")]
         public async Task<IActionResult> GetLastBillNo()
@@ -310,5 +371,4 @@ namespace DrawerPos.API.Controllers
         public int TotalQuantity { get; set; }
         public decimal TotalPrice { get; set; }
     }
-
 }

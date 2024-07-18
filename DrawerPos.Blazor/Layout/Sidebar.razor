@@ -29,7 +29,7 @@
                             </svg>
                             @if (sidebarWidth == "12rem")
                             {
-                                <span class="text">Dashboard</span>
+                                <span class="text">แดชบอร์ด</span>
                             }
                         </a>
                     </li>
@@ -40,18 +40,16 @@
                             </svg>
                             @if (sidebarWidth == "12rem")
                             {
-                                <span class="text">Orders</span>
+                                <span class="text">เมนูสั่งซื้อ</span>
                             }
                         </a>
                     </li>
                     <li @onclick="() => ToggleSubMenu(1)" class="relative mb-1 cursor-pointer transition-all duration-300">
                         <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
-                            <svg class="w-6 h-6 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
+                            <svg class="w-6 h-6 stroke-current"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M248 0L208 0c-26.5 0-48 21.5-48 48l0 112c0 35.3 28.7 64 64 64l128 0c35.3 0 64-28.7 64-64l0-112c0-26.5-21.5-48-48-48L328 0l0 80c0 8.8-7.2 16-16 16l-48 0c-8.8 0-16-7.2-16-16l0-80zM64 256c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l160 0c35.3 0 64-28.7 64-64l0-128c0-35.3-28.7-64-64-64l-40 0 0 80c0 8.8-7.2 16-16 16l-48 0c-8.8 0-16-7.2-16-16l0-80-40 0zM352 512l160 0c35.3 0 64-28.7 64-64l0-128c0-35.3-28.7-64-64-64l-40 0 0 80c0 8.8-7.2 16-16 16l-48 0c-8.8 0-16-7.2-16-16l0-80-40 0c-15 0-28.8 5.1-39.7 13.8c4.9 10.4 7.7 22 7.7 34.2l0 160c0 12.2-2.8 23.8-7.7 34.2C323.2 506.9 337 512 352 512z" /></svg>
                             @if (sidebarWidth == "12rem")
                             {
-                                <span class="text">Audience</span>
+                                <span class="text">จัดการสินค้า</span>
                                 <i class="arrow ph-bold ph-caret-down"></i>
                             }
                         </a>
@@ -59,10 +57,10 @@
                         {
                             <ul class="sub-menu ml-5 pl-5 pt-1 border-l border-gray-200">
                                 <li class="mb-1">
-                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Users</a>
+                                    <a href="products" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">ข้อมูลสินค้า</a>
                                 </li>
                                 <li class="mb-1">
-                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Subscribers</a>
+                                    <a href="categories" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">หมวดหมู่สินค้า</a>
                                 </li>
                             </ul>
                         }
