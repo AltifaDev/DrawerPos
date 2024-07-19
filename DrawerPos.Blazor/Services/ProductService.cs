@@ -165,5 +165,82 @@ namespace DrawerPos.Blazor.Services
                 return Array.Empty<Category>();
             }
         }
+        public async Task<IEnumerable<Product>> SearchProducts(string query)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"API/Products/search?query={Uri.EscapeDataString(query)}");
+                response.EnsureSuccessStatusCode();
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    ReferenceHandler = ReferenceHandler.Preserve
+                };
+
+                var products = await response.Content.ReadFromJsonAsync<IEnumerable<Product>>(options);
+
+                _logger.LogInformation($"Number of products received: {products?.Count() ?? 0}");
+
+                return products ?? Array.Empty<Product>();
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"HttpRequestException: {ex.Message}");
+                return Array.Empty<Product>();
+            }
+            catch (NotSupportedException ex) // When content type is not valid
+            {
+                _logger.LogError($"NotSupportedException: {ex.Message}");
+                return Array.Empty<Product>();
+            }
+            catch (JsonException ex) // Invalid JSON
+            {
+                _logger.LogError($"JsonException: {ex.Message}");
+                return Array.Empty<Product>();
+            }
+            catch (Exception ex) // Catch-all for other exceptions
+            {
+                _logger.LogError($"Exception: {ex.Message}");
+                return Array.Empty<Product>();
+            }
+        }
+        // New method for paginated data
+        public async Task<PaginatedProducts> GetProductsPaginated(int page, int pageSize)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"API/Products/paginated?page={page}&pageSize={pageSize}");
+                response.EnsureSuccessStatusCode();
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    ReferenceHandler = ReferenceHandler.Preserve
+                };
+
+                return await response.Content.ReadFromJsonAsync<PaginatedProducts>(options);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"HttpRequestException: {ex.Message}");
+                return null;
+            }
+            catch (NotSupportedException ex) // When content type is not valid
+            {
+                _logger.LogError($"NotSupportedException: {ex.Message}");
+                return null;
+            }
+            catch (JsonException ex) // Invalid JSON
+            {
+                _logger.LogError($"JsonException: {ex.Message}");
+                return null;
+            }
+            catch (Exception ex) // Catch-all for other exceptions
+            {
+                _logger.LogError($"Exception: {ex.Message}");
+                return null;
+            }
+        }
     }
 }

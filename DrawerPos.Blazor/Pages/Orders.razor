@@ -11,7 +11,7 @@
 @inject IOrderService OrderService
 @using DrawerPos.Blazor.Components
 
-<AlertComponent @ref="alertComponent" />
+<!--<AlertComponent @ref="alertComponent" />-->
  
 <div class="mx-auto">
    
@@ -22,7 +22,7 @@
   
     <div class="flex flex-col md:flex-row mt-4">
         <!-- Left Side: Products -->
-        <div class="md:w-2/3 p-6">
+        <div class="md:w-2/3 p-4">
             
             <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
                 <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="default-tab" role="tablist">
@@ -62,7 +62,7 @@
                 {
                     @foreach (var product in filteredProducts)
                     {
-                        <button id="productlist" class="animate-fade-up product-item" @onclick="() => AddToCart(product)">
+                        <button id="productlist" class="animate-fade-up product-item cursor-pointer" @onclick="() => AddToCart(product)">
                             <div class="relative flex flex-col items-center bg-white border rounded-lg hover:shadow-lg p-2 w-24 h-24 @(Cart.Any(item => item.Product.ProductId == product.ProductId) ? "border-blue-500 border-2" : "border-gray-200")">
                                 <div class="w-full h-full overflow-hidden">
                                     <img src="@($"data:image/png;base64,{product.Image}")" alt="@product.ProductName" class="w-full h-full object-contain">
@@ -114,7 +114,7 @@
                     </div>
                     @foreach (var item in Cart)
                     {
-                        <div id="orderlist" class="animate-fade-up relative text-black p-2 border-gray-300 rounded-lg shadow-lg flex flex-col items-center w-full ml-1 mb-2 transition-max-height duration-300"
+                        <div id="orderlist" class="animate-fade-up relative text-black p-2 border-gray-300 rounded-lg shadow-lg flex flex-col items-center w-full ml-1 mb-2 transition-max-height duration-300 cursor-pointer"
                              @onclick="() => SelectItem(item)"
                              style="@(selectedItem == item ? "max-height: 300px; background-color: #353535; color:#ffffff" : "max-height: 80px; background-color: #ffffff; color:#000000")">
                             <div class="flex w-full items-start justify-between">
@@ -165,7 +165,8 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="font-medium">Amount</span>
-                        <input type="text" id="balance-display" class="font-semibold text-end border-none h-7 w-full" style="text-align:right; padding-right:0" />
+                        <input type="text" id="balance-display" class="font-semibold text-end border-none h-7 w-full" style="text-align:right; padding-right:0"
+                               value="@BalanceFormatted" readonly />
                     </div>
                     <div class="flex items-center justify-between hidden">
                         <span class="font-medium">Tax:</span>
@@ -175,48 +176,29 @@
                         <span class="font-semibold">Total:</span>
                         <span class="font-semibold text-blue-500">@Total.ToString("C", customThaiCulture)</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="font-semibold">Payment Method</span>
+                    <div class="flex items-center justify-between hidden">
+                        <span class="font-semibold">Pay</span>
                         <input type="text" @bind="paymentMethod" id="payment-method" class="font-semibold text-end border-none h-7 w-full" style="text-align:right; padding-right:0" />
                     </div>
                     <hr class="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700">
-                    <div class="flex items-center">
-                        <span class="text-gray-500">Payment Method</span>
-                    </div>
+                    
                     <div class="flex items-center mt-2">
                         @if (Cart.Any(item => item.Quantity > 0))
                         {
-                        <button type="button" class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2"
-                                onclick="toggleDrawer()"
-                                aria-controls="drawer-right">
-                            <div class="flex flex-col items-center">
-                                <span>Cash</span>
-                            </div>
-                        </button>
-                        }
-                        
-                        @if (Cart.Any(item => item.Quantity > 0))
-                        {
-                            <button type="submit" id="qrpay-button" @onclick="SetPaymentMethodToQrPay" class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
-                                <div class="flex flex-col items-center">
-                                    <span>QrPay</span>
-                                </div>
-                            </button>
-                        }
-                        else
-                        {
-                            <div>No items in the order.</div>
-                        }
-
-                        @if (Cart.Any(item => item.Quantity > 0))
-                        {
-                            <button type="submit" id="card-button" @onclick="SetPaymentMethodToCard" class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
-                                <div class="flex flex-col items-center">
-                                    <span>Card</span>
+                            <button type="button" class="animate-fade-up w-full h-16 text-white font-semibold shadow-sm rounded hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" style="background: linear-gradient(-60deg, #176ACA 60%, #0B60C3 40%);"
+                            onclick="toggleDrawer()"
+                            aria-controls="drawer-right">
+                                <div class="flex justify-between p-4">
+                                    <span>ชำระเงิน</span>
+                                    <span>@Total.ToString("C", customThaiCulture)</span>
                                 </div>
                             </button>
                         }
                     </div>
+                    <button type="button" class="animate-fade-up w-full h-16 text-white font-semibold shadow-sm rounded hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                            @onclick="PrintOrder">
+                        Print Order
+                    </button>
                 </div>
             </div>
             <div id="drawer-backdrop" class="drawer closed top-2.5 absolute h-full shadow-lg" tabindex="-1" aria-labelledby="drawer-backdrop-label">
@@ -233,7 +215,7 @@
                     <span class="sr-only">Close menu</span>
                 </button>
                 <div class="p-4 w-full bg-white mt-10 bottom-0">
-                    <input id="balancedisplay" type="text" class="text-center text-xl font-bold py-4 mb-6 w-full text-gray-500 dark:text-gray-400" readonly value="@($"{balance.ToString("N0", CultureInfo.InvariantCulture)} ฿")" />
+                    <input type="number" @bind="balance" @bind:event="oninput" class="text-center text-xl font-bold py-4 mb-6 w-full text-gray-500 dark:text-gray-400" />                    
                     <div class="grid grid-cols-4 gap-2">
                         @foreach (var btnValue in new[] { "7", "8", "9", "100", "4", "5", "6", "500", "1", "2", "3", "1000", "00", "0", "<", "C" })
                         {
@@ -243,12 +225,25 @@
                             </button>
                         }
                     </div>
-                    <button id="open-drawer-button" type="button" class="w-full text-center inline-flex items-center px-4 py-4 mt-4 text-sm font-medium text-center text-white bg-green-500 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                    <button id="open-drawer-button" type="submit" @onclick="SetPaymentMethodToCash" class="w-full text-center inline-flex items-center px-4 py-4 mt-4 text-sm font-medium text-center text-white bg-blue-500 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
                         <span>ชำระเงิน </span>
-                        <svg class="rtl:rotate-180 w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                        <svg class="rtl:rotate-180 w-3.5 h-3.5 ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                         </svg>
                     </button>
+                    <div class="flex items-center mt-2">
+                        <button type="submit" id="qrpay-button" @onclick="SetPaymentMethodToQrPay" class="animate-fade-up text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
+                                <div class="flex flex-col items-center">
+                                    <span>QrPay</span>
+                                </div>
+                            </button>
+                        
+                            <button type="submit" id="card-button" @onclick="SetPaymentMethodToCard" class="animate-fade-up text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
+                                <div class="flex flex-col items-center">
+                                    <span>Card</span>
+                                </div>
+                            </button>
+                    </div>
                 </div>
             </div>
         </EditForm>
@@ -259,6 +254,16 @@
         var drawer = document.getElementById('drawer-backdrop');
         drawer.classList.toggle('open');
     }
+   function printOrder(printContent) {
+            var printWindow = window.open('', '', 'height=400,width=600');
+            printWindow.document.write('<html><head><title>Print Order</title>');
+            printWindow.document.write('</head><body >');
+            printWindow.document.write(printContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+
 </script>
 @code {
     private OrderDTO orderDto = new OrderDTO();
@@ -275,6 +280,7 @@
     private decimal Tax => 0;
     private decimal Total => (SubTotal + Discount) + Tax;
     private decimal CartTotal => Cart.Sum(item => item.TotalPrice);
+    private decimal CartQtyTotal => Cart.Sum(item => item.Quantity);
     private decimal CartDiscountTotal => Cart.Sum(item => item.Discount);
     private decimal SubTotal => CartTotal - CartDiscountTotal;
     private decimal Discount => CartDiscountTotal;
@@ -282,9 +288,10 @@
     private CultureInfo customThaiCulture;
     private string errorMessage;
     private string paymentMethod;
-
     bool isDrawerOpen = false;
     private AlertComponent alertComponent;
+    // Format the balance with currency symbol
+    private string BalanceFormatted => $"{balance.ToString("N0", CultureInfo.InvariantCulture)} ฿";
 
     private void ShowExampleAlert()
     {
@@ -331,23 +338,25 @@
             paymentMethod = "QrPay";
       //  }
     }
-
-    private void SetPaymentMethodToCard()
+    private void SetPaymentMethodToCash()
     {
-       // if (order.Items == null || order.Items.Sum(item => item.Quantity) == 0)
-       // {
-       //     ShowExampleAlert();
-        //    return;
-       // }
-      // else
-        //{
-            paymentMethod = "Card";
-        //}
+        
+        paymentMethod = "Cash";
+        
+    }
+    private void SetPaymentMethodToCard()
+    { 
+        paymentMethod = "Card";
+         
     }
     private void RemoveAllFromCart()
     {
-        order.Items.Clear();
-        UpdateOrderTotals();
+        // Clear the form and cart only after successful submission
+        order = new Order { Items = new List<OrderItem>() };
+        paymentMethod = "";
+        Cart.Clear();
+
+        StateHasChanged();
     }
 
     private void AddToCart(Product product)
@@ -484,7 +493,7 @@
                 order = new Order { Items = new List<OrderItem>() };
                 paymentMethod = "";
                 Cart.Clear();
-
+                balance = 0;
                 StateHasChanged();
             }
             else
@@ -529,5 +538,38 @@
         }
 
         StateHasChanged(); // Ensures UI is updated
+    }
+    private void UpdateBalance(decimal value)
+    {
+        balance = value;
+        StateHasChanged(); // Request a UI update
+    }
+    //PrintOrder
+    private async Task PrintOrder()
+    {
+        var printContent = GeneratePrintContent();
+        await JS.InvokeVoidAsync("printOrder", printContent);
+    }
+
+    private string GeneratePrintContent()
+    {
+        var html = new System.Text.StringBuilder();
+        html.Append("<div>");
+        html.Append("<h2>Order Details</h2>");
+        html.Append("<table border='0'><tr><th>รายการ</th><th>จำนวน</th><th>ราคา</th></tr>");
+
+        foreach (var item in Cart)
+        {
+            html.Append($"<tr><td>{item.Product.NameDisplay}</td><td>{item.Quantity}</td><td>{item.TotalPrice.ToString("0.##")}</td></tr>");
+        }
+
+        html.Append("</table>");
+        html.Append($"<p>จำนวนสินค้า: {CartQtyTotal}</p>");
+        html.Append($"<p>ยอดรวมสินค้า: {Total.ToString("C", customThaiCulture)}</p>");
+        html.Append($"<p>เงินสด: {balance} เงินทอน : {balance - Total}</p>");
+        html.Append($"<p>ชำระโดย: {paymentMethod} </p>");
+        html.Append("</div>");
+
+        return html.ToString();
     }
 }

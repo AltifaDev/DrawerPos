@@ -58,3 +58,15 @@ function toggleDrawer() {
         backdrop.classList.add('hidden');
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    var dropdownButton = document.getElementById("dropdownActionButton");
+    if (dropdownButton) {
+        dropdownButton.addEventListener("click", function () {
+            var dropdown = document.getElementById("dropdownAction");
+            if (dropdown) {
+                dropdown.classList.toggle("hidden");
+            }
+        });
+    }
+});

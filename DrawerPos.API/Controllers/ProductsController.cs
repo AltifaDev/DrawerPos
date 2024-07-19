@@ -21,7 +21,7 @@ namespace DrawerPos.API.Controllers
             _context = context;
             _logger = logger;
         }
-        
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
@@ -148,6 +148,52 @@ namespace DrawerPos.API.Controllers
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.ProductId == id);
+        }
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<Product>>> SearchProducts([FromQuery] string query)
+        {
+            try
+            {
+                var products = await _context.Products
+                                             .Include(p => p.Category)
+                                             .Where(p => p.ProductName.Contains(query) ||
+                                                         p.Category.CategoryName.Contains(query) ||
+                                                         p.Description.Contains(query))
+                                             .ToListAsync();
+
+                _logger.LogInformation($"Fetched {products.Count} products matching query '{query}'.");
+                return products;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching filtered products.");
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
+        // New method for paginated data
+        [HttpGet("paginated")]
+        public async Task<ActionResult<PaginatedProducts>> GetProductsPaginated(int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                var totalProducts = await _context.Products.CountAsync();
+                var products = await _context.Products
+                                    .Include(p => p.Category)
+                                    .Skip((page - 1) * pageSize)
+                                    .Take(pageSize)
+                                    .ToListAsync();
+
+                return new PaginatedProducts
+                {
+                    Products = products,
+                    TotalProducts = totalProducts
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching paginated products.");
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
         }
     }
 }
