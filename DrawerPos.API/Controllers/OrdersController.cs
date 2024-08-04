@@ -44,7 +44,7 @@ namespace DrawerPos.API.Controllers
 
             foreach (var itemDto in orderDto.Items)
             {
-                order.Items.Add(new OrderItem
+                order.OrderItems.Add(new OrderItem
                 {
                     OrderItemId = itemDto.OrderItemId,
                     BillNo = itemDto.BillNo,
@@ -75,7 +75,7 @@ namespace DrawerPos.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrderById(string id)
         {
-            var order = await _context.Orders.Include(o => o.Items)
+            var order = await _context.Orders.Include(o => o.OrderItems)
                                               .FirstOrDefaultAsync(o => o.BillNo == id);
 
             if (order == null)
@@ -222,16 +222,16 @@ namespace DrawerPos.API.Controllers
             try
             {
                 var orders = await _context.Orders
-                    .Include(o => o.Items)
+                    .Include(o => o.OrderItems)
                         .ThenInclude(i => i.Product) // Include Product navigation property
                     .Select(o => new OrderDTO
                     {
-                        OrderID = o.OrderId,
+                        
                         BillNo = o.BillNo,
                         OrderDate = o.OrderDate,
                         Total = o.Total,
                         Discount = o.Discount,
-                        Items = o.Items.Select(i => new OrderItemDTO
+                        Items = o.OrderItems.Select(i => new OrderItemDTO
                         {
                             OrderItemId = i.OrderItemId,
                             BillNo = i.BillNo,

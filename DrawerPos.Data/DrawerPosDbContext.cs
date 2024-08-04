@@ -32,7 +32,14 @@ namespace DrawerPos.Data
         public virtual DbSet<Store> Stores { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseSqlServer("Data Source=ALFA\\SQLEXPRESS;Initial Catalog=DrawerPosDB;Integrated Security=True;Encrypt=False");
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer(
+                    "Data Source=ALFA\\SQLEXPRESS;Initial Catalog=DrawerData;Integrated Security=True;Encrypt=False",
+                    b => b.MigrationsAssembly("DrawerPos.Data"));
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -140,38 +147,44 @@ namespace DrawerPos.Data
 
             modelBuilder.Entity<OrderItem>(entity =>
             {
-                entity.HasKey(e => e.OrderItemId).HasName("PK__OrderIte__57ED068177BB4C9D");
+                entity.HasKey(e => e.OrderItemId);
 
-                entity.Property(e => e.BillNo).HasMaxLength(20);
-                entity.Property(e => e.Discount).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18, 2)");
 
-                // Ensure correct foreign key configuration
+                entity.Property(e => e.Discount)
+                    .HasColumnType("decimal(18, 2)");
+
+                // Configure the relationship between OrderItem and Order
                 entity.HasOne(d => d.BillNoNavigation)
-                    .WithMany(p => p.Items)
-                    .HasPrincipalKey(p => p.BillNo)
+                    .WithMany(o => o.OrderItems)
                     .HasForeignKey(d => d.BillNo)
-                    .HasConstraintName("FK__OrderItems__BillN__2F34F866");
+                    .OnDelete(DeleteBehavior.ClientSetNull);
 
-                entity.HasOne(p => p.Product)
-                    .WithMany()
-                    .HasForeignKey(p => p.ProductId)
-                    .HasConstraintName("FK__OrderItems__Product__2F34F866");
+                // Configure the relationship between OrderItem and Product
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.OrderItems)
+                    .HasForeignKey(d => d.ProductId);
             });
 
+            // Configuration for Payment
             modelBuilder.Entity<Payment>(entity =>
             {
-                entity.HasKey(e => e.PaymentId).HasName("PK__Payments__9B556A38A57B5333");
+                entity.HasKey(e => e.PaymentId); // Primary Key for Payment
 
-                entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.BillNo).HasMaxLength(20);
-                entity.Property(e => e.PaymentMethod).HasMaxLength(50);
-
-                entity.HasOne(d => d.BillNoNavigation).WithMany(p => p.Payments)
-                    .HasPrincipalKey(p => p.BillNo)
+                // Configure the relationship between Payment and Order
+                entity.HasOne(d => d.BillNoNavigation)
+                    .WithMany(o => o.Payments)
                     .HasForeignKey(d => d.BillNo)
-                    .HasConstraintName("FK__Payments__BillNo__30C33EC3");
+                    .OnDelete(DeleteBehavior.ClientSetNull); // Ensure the relationship is maintained if the Order is deleted
+
+                // Configure Amount property
+                entity.Property(e => e.Amount)
+                    .HasColumnType("decimal(18, 2)"); // Set column type with precision and scale
+
+                // Additional property configurations if needed
             });
+
 
             modelBuilder.Entity<PrinterSetting>(entity =>
             {

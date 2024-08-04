@@ -17,19 +17,29 @@ namespace DrawerPos.Blazor.Services
             _httpClient = httpClient;
         }
 
-        public async Task<ReceiptHeader> GetLatestReceiptHeaderAsync()
+        public async Task<ReceiptHeader?> GetLatestReceiptHeaderAsync()
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<ReceiptHeader>("api/ReceiptHeaders/latest");
+                var response = await _httpClient.GetAsync("api/ReceiptHeaders/latest");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ReceiptHeader>();
+                }
+                else
+                {
+                    // Handle not found scenario
+                    Console.WriteLine($"API call failed with status code {response.StatusCode}");
+                    return null;
+                }
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
-                // Log the error (not implemented in this example)
-                throw new ApplicationException("Error fetching the latest receipt header", ex);
+                // Log the exception or handle it
+                Console.WriteLine($"Request error: {ex.Message}");
+                return null;
             }
         }
-
         public async Task<IEnumerable<ReceiptHeader>> GetReceiptHeadersAsync()
         {
             try

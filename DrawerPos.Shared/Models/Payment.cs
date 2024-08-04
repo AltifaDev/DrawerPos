@@ -6,9 +6,10 @@ namespace DrawerPos.Shared
 {
     public partial class Payment
     {
+        [Key]
         public int PaymentId { get; set; }
 
-        public string BillNo { get; set; } = null!;
+        public string BillNo { get; set; } = null!; // Foreign Key
 
         public DateTime? PaymentDate { get; set; }
 
@@ -16,8 +17,7 @@ namespace DrawerPos.Shared
 
         public string? PaymentMethod { get; set; }
 
+        // Navigation property to Order
         public virtual Order BillNoNavigation { get; set; } = null!;
-
-       
     }
 }

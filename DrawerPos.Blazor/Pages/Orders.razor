@@ -440,7 +440,7 @@
     private List<OrderItemDTO> CartOrder = new List<OrderItemDTO>();
     private string lastBillNo;
     private Payment payment = new Payment();
-    private Order order = new Order { Items = new List<OrderItem>() };
+    private Order order = new Order { OrderItems = new List<OrderItem>() };
     private List<CartItem> Cart = new List<CartItem>();
     private List<Product> products = new List<Product>();
     private ReceiptHeader receiptHeader = new ReceiptHeader();
@@ -486,7 +486,7 @@
         }
         products = (await ProductService.GetProducts()).ToList();
         categories = (await ProductService.GetCategories()).ToList();
-        order = new Order { Items = new List<OrderItem>() };
+        order = new Order { OrderItems = new List<OrderItem>() };
         if (categories.Any())
         {
             selectedCategory = categories.First();
@@ -541,7 +541,7 @@
     private void RemoveAllFromCart()
     {
         // Clear the form and cart only after successful submission
-        order = new Order { Items = new List<OrderItem>() };
+        order = new Order { OrderItems = new List<OrderItem>() };
         paymentMethod = "";
         Cart.Clear();
 
@@ -562,7 +562,7 @@
             cartItem.TotalPrice += product.Price;
         }
 
-        order.Items = Cart.Select(ci => OrderHelper.ToOrderItem(ci)).ToList();
+        order.OrderItems = Cart.Select(ci => OrderHelper.ToOrderItem(ci)).ToList();
         UpdateOrderTotals(); // Update totals when adding to cart
         StateHasChanged();
     }
@@ -579,10 +579,10 @@
         if (item.Quantity <= 0)
         {
             Cart.Remove(item);
-            var orderItemToRemove = order.Items.FirstOrDefault(oi => oi.ProductId == item.Product.ProductId);
+            var orderItemToRemove = order.OrderItems.FirstOrDefault(oi => oi.ProductId == item.Product.ProductId);
             if (orderItemToRemove != null)
             {
-                order.Items.Remove(orderItemToRemove);
+                order.OrderItems.Remove(orderItemToRemove);
             }
         }
         else
@@ -595,10 +595,10 @@
     private void RemoveFromCart(CartItem item)
     {
         Cart.Remove(item);
-        var orderItemToRemove = order.Items.FirstOrDefault(oi => oi.ProductId == item.Product.ProductId);
+        var orderItemToRemove = order.OrderItems.FirstOrDefault(oi => oi.ProductId == item.Product.ProductId);
         if (orderItemToRemove != null)
         {
-            order.Items.Remove(orderItemToRemove);
+            order.OrderItems.Remove(orderItemToRemove);
         }
         UpdateOrderTotals();
     }
@@ -633,7 +633,7 @@
 
     private async Task HandleValidSubmit()
     {
-        if (order == null || order.Items == null || string.IsNullOrWhiteSpace(paymentMethod))
+        if (order == null || order.OrderItems == null || string.IsNullOrWhiteSpace(paymentMethod))
         {
             // Handle null values as before
             return;
@@ -679,7 +679,7 @@
             if (response.IsSuccessStatusCode) // Move clearing inside this block
             {
                 // Clear the form and cart only after successful submission
-                order = new Order { Items = new List<OrderItem>() };
+                order = new Order { OrderItems = new List<OrderItem>() };
                 paymentMethod = "";
                 Cart.Clear();
                 balance = 0;

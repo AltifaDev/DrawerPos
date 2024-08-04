@@ -29,15 +29,15 @@ namespace DrawerPos.API.Controllers
             try
             {
                 var orders = await _context.Orders
-                    .Include(o => o.Items)
+                    .Include(o => o.OrderItems)
                     .Select(o => new OrderDTO
                     {
-                        OrderID = o.OrderId,
+                        
                         BillNo = o.BillNo,
                         OrderDate = o.OrderDate,
                         Total = o.Total,
                         Discount = o.Discount,
-                        Items = o.Items.Select(i => new OrderItemDTO
+                        Items = o.OrderItems.Select(i => new OrderItemDTO
                         {
                             OrderItemId = i.OrderItemId,
                             BillNo = i.BillNo,
@@ -78,7 +78,7 @@ namespace DrawerPos.API.Controllers
             try
             {
                 var query = _context.Orders
-                    .Include(o => o.Items)
+                    .Include(o => o.OrderItems)
                     .ThenInclude(i => i.Product)
                     .AsQueryable();
 
@@ -95,7 +95,7 @@ namespace DrawerPos.API.Controllers
                 var filteredOrders = await query.ToListAsync();
 
                 var groupedOrderItems = filteredOrders
-                    .SelectMany(o => o.Items)
+                    .SelectMany(o => o.OrderItems)
                     .GroupBy(oi => oi.Product)
                     .Select(CreateGroupedOrderItem)
                     .OrderBy(g => g.ProductName)
