@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": ".NET Core Launch (web)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/DrawerPos.API/bin/Debug/net8.0/DrawerPos.API.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/DrawerPos.API",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "requireExactSource": false,
+      "framework": "net8.0"
+    },
+    {
+      "name": "Blazor WebAssembly Debug",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "https://localhost:7222",
+      "webRoot": "${workspaceFolder}/DrawerPos.Blazor",
+      "sourceMaps": true,
+      "preLaunchTask": "build-blazor"
+    }
+  ]
+}

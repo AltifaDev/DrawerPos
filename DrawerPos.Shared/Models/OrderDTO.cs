@@ -9,15 +9,15 @@ namespace DrawerPos.Shared
     public class OrderDTO
     {
         public int OrderID { get; set; }
-        public string BillNo { get; set; }
+        public string? BillNo { get; set; }
+        public DateTime OrderDate { get; set; }
+        public decimal? Total { get; set; }
+        public decimal? Discount { get; set; }
+        public List<OrderItemDTO> Items { get; set; } = new List<OrderItemDTO>();
         public int? CustomerId { get; set; }
         public int? StoreId { get; set; }
-        public decimal? Discount { get; set; }
-        public DateTime OrderDate { get; set; }
-        public string PaymentMethod { get; set; }
+        public string? PaymentMethod { get; set; }
         public decimal? SubTotal { get; set; }
-        public decimal? Total { get; set; }
-        public List<OrderItemDTO> Items { get; set; }
-        public List<PaymentDTO> Payments { get; set; }
+        public List<PaymentDTO>? Payments { get; set; }
     }
 }

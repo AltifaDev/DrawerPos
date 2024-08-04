@@ -1,0 +1,77 @@
+﻿@page "/printer-settings"
+@using DrawerPos.Shared
+@inject DrawerPos.Blazor.Services.PrinterSettingsService PrinterSettingsService
+@inject NavigationManager Navigation
+
+<div class="animate-fade-up relative pl-6 pt-6">
+    <h2 class="text-base font-semibold leading-7 text-gray-900">หมวดหมู่สินค้า</h2>
+    <p class="mt-1 text-sm leading-6 text-gray-600">This information will be displayed publicly so be careful what you share.</p>
+</div>
+   <div class="pl-6">
+    <a class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" @onclick="CreateNew">
+        <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+        เพิ่มปริ้นเตอร์
+    </a>
+ </div>
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg p-6">
+    @if (printerSettings == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+                    <th scope="col" class="px-6 py-3">ชื่อเครื่องปริ้น</th>
+                    <th scope="col" class="px-6 py-3">ความละเอียด</th>
+                    <th scope="col" class="px-6 py-3">รูปแบบสี</th>
+                    <th scope="col" class="px-6 py-3">ขนาดกระดาษ</th>
+                    <th scope="col" class="px-6 py-3">การออกใบสลิป</th>
+                    <th scope="col" class="px-6 py-3">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var setting in printerSettings)
+            {
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="px-6 py-4">@setting.PrinterName</td>
+                        <td class="px-6 py-4">@setting.PrintQuality</td>
+                        <td class="px-6 py-4">@setting.ColorMode</td>
+                        <td class="px-6 py-4">@setting.PaperSize</td>
+                        <td class="px-6 py-4">@setting.PaperReprint</td>
+                    <td>
+                            <button class="hover:text-blue-700 font-medium text-black  py-2 px-2 " @onclick="() => Edit(setting.Id)">Edit</button>
+                            <button class="hover:text-blue-700 font-medium text-black  py-2 px-2 " @onclick="() => Delete(setting.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+</div>
+@code {
+    private List<PrinterSetting> printerSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        printerSettings = await PrinterSettingsService.GetPrinterSettingsAsync();
+    }
+
+    private void CreateNew()
+    {
+        Navigation.NavigateTo("/printer-settings/edit/0");
+    }
+
+    private void Edit(int id)
+    {
+        Navigation.NavigateTo($"/printer-settings/edit/{id}");
+    }
+
+    private async Task Delete(int id)
+    {
+        await PrinterSettingsService.DeletePrinterSettingAsync(id);
+        printerSettings = await PrinterSettingsService.GetPrinterSettingsAsync();
+    }
+}

@@ -1,0 +1,61 @@
+﻿@page "/printersettings"
+@inject DrawerPos.Blazor.Services.PrinterSettingsService PrinterSettingsService
+
+<h3>Printer Settings</h3>
+
+<button @onclick="CreateNew">New Printer Setting</button>
+
+@if (printerSettings != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Printer Name</th>
+                <th>Print Quality</th>
+                <th>Color Mode</th>
+                <th>Paper Size</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var setting in printerSettings)
+            {
+                <tr>
+                    <td>@setting.PrinterName</td>
+                    <td>@setting.PrintQuality</td>
+                    <td>@setting.ColorMode</td>
+                    <td>@setting.PaperSize</td>
+                    <td>
+                        <button @onclick="() => Edit(setting.Id)">Edit</button>
+                        <button @onclick="() => Delete(setting.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<PrinterSetting> printerSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        printerSettings = await PrinterSettingsService.GetPrinterSettingsAsync();
+    }
+
+    private void CreateNew()
+    {
+        Navigation.NavigateTo("/printer-settings/edit/0");
+    }
+
+    private void Edit(int id)
+    {
+        Navigation.NavigateTo($"/printer-settings/edit/{id}");
+    }
+
+    private async Task Delete(int id)
+    {
+        await PrinterSettingsService.DeletePrinterSettingAsync(id);
+        printerSettings = await PrinterSettingsService.GetPrinterSettingsAsync();
+    }
+}

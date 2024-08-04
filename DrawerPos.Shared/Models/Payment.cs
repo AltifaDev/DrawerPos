@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace DrawerPos.Shared
 {
@@ -16,5 +17,7 @@ namespace DrawerPos.Shared
         public string? PaymentMethod { get; set; }
 
         public virtual Order BillNoNavigation { get; set; } = null!;
+
+       
     }
 }

@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 
 namespace DrawerPos.Shared
 {
-    public class GroupedOrderItem
+    public class OrderSummary
     {
-        public string ProductName { get; set; }
+        public DateTime OrderDate { get; set; }
+        public string? ProductName { get; set; }
+        public string? NameDisplay { get; set; }
+        public string? Image { get; set; }
         public int TotalQuantity { get; set; }
         public decimal TotalPrice { get; set; }
     }

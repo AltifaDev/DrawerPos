@@ -45,7 +45,7 @@
                         </a>
                     </li>
                     <li @onclick="() => ToggleSubMenu(1)" class="relative mb-1 cursor-pointer transition-all duration-300">
-                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                        <a class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
                             <svg class="w-6 h-6 stroke-current"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M248 0L208 0c-26.5 0-48 21.5-48 48l0 112c0 35.3 28.7 64 64 64l128 0c35.3 0 64-28.7 64-64l0-112c0-26.5-21.5-48-48-48L328 0l0 80c0 8.8-7.2 16-16 16l-48 0c-8.8 0-16-7.2-16-16l0-80zM64 256c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l160 0c35.3 0 64-28.7 64-64l0-128c0-35.3-28.7-64-64-64l-40 0 0 80c0 8.8-7.2 16-16 16l-48 0c-8.8 0-16-7.2-16-16l0-80-40 0zM352 512l160 0c35.3 0 64-28.7 64-64l0-128c0-35.3-28.7-64-64-64l-40 0 0 80c0 8.8-7.2 16-16 16l-48 0c-8.8 0-16-7.2-16-16l0-80-40 0c-15 0-28.8 5.1-39.7 13.8c4.9 10.4 7.7 22 7.7 34.2l0 160c0 12.2-2.8 23.8-7.7 34.2C323.2 506.9 337 512 352 512z" /></svg>
                             @if (sidebarWidth == "12rem")
                             {
@@ -87,14 +87,31 @@
                             }
                         </a>
                     </li>
-                    <li @onclick="() => ToggleSubMenu(4)" class="relative mb-1 cursor-pointer transition-all duration-300">
-                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                   
+                </ul>
+            </div>
+            <div class="menu">
+                <p class="title text-xs font-medium text-gray-600 uppercase mb-2">Settings</p>
+                <ul>
+                    <li @onclick="() => ToggleSubMenu(5)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                        <a href="company" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
                             <svg class="w-6 h-6 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                             </svg>
                             @if (sidebarWidth == "12rem")
                             {
-                                <span class="text">Income</span>
+                                <span class="text">จัดการข้อมูลร้านค้า</span>
+                            }
+                        </a>
+                    </li>
+                    <li @onclick="() => ToggleSubMenu(4)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                        <a class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 stroke-current">
+                                <path fill-rule="evenodd" d="M7.875 1.5C6.839 1.5 6 2.34 6 3.375v2.99c-.426.053-.851.11-1.274.174-1.454.218-2.476 1.483-2.476 2.917v6.294a3 3 0 0 0 3 3h.27l-.155 1.705A1.875 1.875 0 0 0 7.232 22.5h9.536a1.875 1.875 0 0 0 1.867-2.045l-.155-1.705h.27a3 3 0 0 0 3-3V9.456c0-1.434-1.022-2.7-2.476-2.917A48.716 48.716 0 0 0 18 6.366V3.375c0-1.036-.84-1.875-1.875-1.875h-8.25ZM16.5 6.205v-2.83A.375.375 0 0 0 16.125 3h-8.25a.375.375 0 0 0-.375.375v2.83a49.353 49.353 0 0 1 9 0Zm-.217 8.265c.178.018.317.16.333.337l.526 5.784a.375.375 0 0 1-.374.409H7.232a.375.375 0 0 1-.374-.409l.526-5.784a.373.373 0 0 1 .333-.337 41.741 41.741 0 0 1 8.566 0Zm.967-3.97a.75.75 0 0 1 .75-.75h.008a.75.75 0 0 1 .75.75v.008a.75.75 0 0 1-.75.75H18a.75.75 0 0 1-.75-.75V10.5ZM15 9.75a.75.75 0 0 0-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 0 0 .75-.75V10.5a.75.75 0 0 0-.75-.75H15Z" clip-rule="evenodd" />
+                            </svg>
+                            @if (sidebarWidth == "12rem")
+                            {
+                                <span class="text">ตั้งค่าปริ้นเตอร์</span>
                                 <i class="arrow ph-bold ph-caret-down"></i>
                             }
                         </a>
@@ -102,43 +119,23 @@
                         {
                             <ul class="sub-menu ml-5 pl-5 pt-1 border-l border-gray-200">
                                 <li class="mb-1">
-                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Earnings</a>
+                                    <a href="printer-settings" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">กำหนดปริ้นเตอร์</a>
                                 </li>
+                                
                                 <li class="mb-1">
-                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Funds</a>
-                                </li>
-                                <li class="mb-1">
-                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Declines</a>
-                                </li>
-                                <li class="mb-1">
-                                    <a href="#" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">Payouts</a>
+                                    <a href="receipts" class="flex items-center gap-2 text-xs p-2 transition-all duration-300">ตั้งค่าหัวข้อใบเสร็จ</a>
                                 </li>
                             </ul>
                         }
                     </li>
-                </ul>
-            </div>
-            <div class="menu">
-                <p class="title text-xs font-medium text-gray-600 uppercase mb-2">Settings</p>
-                <ul>
-                    <li @onclick="() => ToggleSubMenu(5)" class="relative mb-1 cursor-pointer transition-all duration-300">
-                        <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
-                            <svg class="w-6 h-6 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                            </svg>
-                            @if (sidebarWidth == "12rem")
-                            {
-                                <span class="text">Settings</span>
-                            }
-                        </a>
-                    </li>
+                  
                 </ul>
             </div>
         </div>
         <div class="menu">
             <p class="title text-xs font-medium text-gray-600 uppercase mb-2">Account</p>
             <ul>
-                <li @onclick="() => ToggleSubMenu(6)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                <li @onclick="() => ToggleSubMenu(7)" class="relative mb-1 cursor-pointer transition-all duration-300">
                     <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
                         <svg class="w-6 h-6 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
@@ -149,7 +146,7 @@
                         }
                     </a>
                 </li>
-                <li @onclick="() => ToggleSubMenu(7)" class="relative mb-1 cursor-pointer transition-all duration-300">
+                <li @onclick="() => ToggleSubMenu(8)" class="relative mb-1 cursor-pointer transition-all duration-300">
                     <a href="#" class="flex items-center gap-2 text-sm font-medium text-gray-600 p-3 rounded-md transition-all duration-300">
                         <svg class="w-6 h-6 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />

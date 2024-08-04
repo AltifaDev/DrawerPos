@@ -3,36 +3,45 @@
 @using DrawerPos.Blazor.Services
 @using DrawerPos.Shared
 @using System.Text.Json
-@inject DrawerPos.Blazor.Services.OrderService OrderService
+@inject DashboardService DashboardService
 @inject IJSRuntime JSRuntime
 
 <h1 class="text-3xl font-bold p-6">Sales Performance Dashboard</h1>
 
 <div class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-4">
     <div class="bg-white p-4 rounded shadow">
-        <h2 class="text-lg font-semibold">Total Orders</h2>
-        <p class="text-2xl">@totalOrders</p>
+        <h2 class="text-lg font-semibold">ยอดขาย</h2>
+        <p class="text-2xl">@totalRevenue.ToString("C")</p>
     </div>
     <div class="bg-white p-4 rounded shadow">
-        <h2 class="text-lg font-semibold">Total Revenue</h2>
-        <p class="text-2xl">@totalRevenue.ToString("C")</p>
+        <h2 class="text-lg font-semibold">จำนวน</h2>
+        <p class="text-2xl">@totalQuantity</p>
+    </div>
+    <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-lg font-semibold">บิล/ใบเสร็จ</h2>
+        <p class="text-2xl">@totalOrders รายการ</p>
     </div>
     <div class="bg-white p-4 rounded shadow">
         <h2 class="text-lg font-semibold">Total Discounts</h2>
         <p class="text-2xl">@totalDiscounts.ToString("C")</p>
-    </div>
-    <div class="bg-white p-4 rounded shadow">
-        <h2 class="text-lg font-semibold">Total Payments</h2>
-        <p class="text-2xl">@totalPayments.ToString("C")</p>
     </div>
 </div>
 
 <div class="grid grid-cols-2 lg:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded shadow">
         <h2 class="text-lg font-semibold">Orders by Date</h2>
-        <input type="date" @bind="startDate" class="input" />
-        <input type="date" @bind="endDate" class="input" />
-        <button class="btn btn-primary" @onclick="ApplyFilters">Apply</button>
+        <div class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-4">
+            <input type="date" @bind="startDate" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+            <input type="date" @bind="endDate" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+            <button class="bg-gray-300 hover:bg-gray-500 text-white font-bold px-4 rounded inline-flex items-center h-10" @onclick="ApplyFilters">
+                <svg class="w-8 h-8 mr-2" viewBox="0 0 24 24" fill="currentColor" stroke="white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 12C3 4.5885 4.5885 3 12 3C19.4115 3 21 4.5885 21 12C21 19.4115 19.4115 21 12 21C4.5885 21 3 19.4115 3 12Z" stroke="#323232" stroke-width="2" />
+                    <path d="M14 14L16 16" stroke="#323232" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M15 11.5C15 13.433 13.433 15 11.5 15C9.567 15 8 13.433 8 11.5C8 9.567 9.567 8 11.5 8C13.433 8 15 9.567 15 11.5Z" stroke="#323232" stroke-width="2" />
+                </svg>
+                <span class="text-gray-800">ค้นหา</span>
+            </button>
+        </div>
         <div id="ordersChartContainer" class="mt-4">
             <canvas id="ordersChart"></canvas>
         </div>
@@ -45,71 +54,122 @@
         </div>
     </div>
 </div>
+
 <div class="bg-white p-4 rounded shadow mt-4">
     <h2 class="text-lg font-semibold">Orders</h2>
     <table class="min-w-full divide-y divide-gray-200">
         <thead>
             <tr>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
+                <th>Order Date</th>
+                <th>Image</th>
+                <th>Product Name</th>
+                <th>Name Display</th>
+                <th>Total Quantity</th>
+                <th>Total Price</th>
             </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-            @foreach (var order in filteredOrders)
-            {
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">@order.OrderId</td>
-                    <td class="px-6 py-4 whitespace-nowrap">@order.Customer?.FirstName</td>
-                    <td class="px-6 py-4 whitespace-nowrap">@order.TotalAmount</td>
-                    <td class="px-6 py-4 whitespace-nowrap">@order.OrderDate.ToShortDateString()</td>
-                </tr>
-            }
+        <tbody>
+          
+                @foreach (var summary in orderSummaries)
+                {
+                    <tr>
+                        <td>@summary.OrderDate.ToShortDateString()</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(summary.Image))
+                            {
+                                <img src="@summary.Image" alt="Product Image" class="h-10 w-10 object-cover rounded-full" />
+                            }
+                        </td>
+                        <td>@summary.ProductName</td>
+                        <td>@summary.NameDisplay</td>
+                        <td>@summary.TotalQuantity</td>
+                        <td>@summary.TotalPrice.ToString("C")</td>
+                    </tr>
+                }
+           
         </tbody>
     </table>
 </div>
-<!-- Rest of the component, e.g., statistics section, orders table, etc. -->
 @code {
     private int totalOrders;
     private decimal totalRevenue;
     private decimal totalDiscounts;
-    private decimal totalPayments;
-    private IEnumerable<Order> orders = new List<Order>();
-    private IEnumerable<Order> filteredOrders = new List<Order>();
+    private int totalQuantity;
+    private IEnumerable<OrderDTO> orders = new List<OrderDTO>();
+    private IEnumerable<OrderDTO> filteredOrders = new List<OrderDTO>();
     private DateTime? startDate;
     private DateTime? endDate;
-    List<GroupedOrderItem> groupedOrderItems;
+    private string errorMessage;
+    private List<OrderSummary> orderSummaries = new List<OrderSummary>();
 
     protected override async Task OnInitializedAsync()
     {
         startDate = DateTime.Now.AddDays(-30);
         endDate = DateTime.Now;
 
-        orders = (await OrderService.GetOrders()).ToList();
-        filteredOrders = orders;
-        CalculateTotals();
-        groupedOrderItems = await OrderService.GetDateOrders(startDate, endDate);
-        await InitializeCharts();
+        try
+        {
+            orders = (await DashboardService.GetOrders()).ToList();
+            filteredOrders = orders ?? new List<OrderDTO>();
+            CalculateTotals();
+            CalculateOrderSummaries();
+            await InitializeCharts();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
     }
 
     private async Task ApplyFilters()
     {
-        filteredOrders = orders.Where(o =>
-            (!startDate.HasValue || o.OrderDate.Date >= startDate.Value.Date) &&
-            (!endDate.HasValue || o.OrderDate.Date <= endDate.Value.Date)).ToList();
+        try
+        {
+            filteredOrders = orders.Where(o =>
+                (!startDate.HasValue || o.OrderDate.Date >= startDate.Value.Date) &&
+                (!endDate.HasValue || o.OrderDate.Date <= endDate.Value.Date)).ToList();
 
-        CalculateTotals();
-        groupedOrderItems = await OrderService.GetDateOrders(startDate, endDate);
-        await InitializeCharts();
+            CalculateTotals();
+            CalculateOrderSummaries();
+            await InitializeCharts();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error applying filters: {ex.Message}";
+        }
     }
 
     private void CalculateTotals()
     {
         totalOrders = filteredOrders.Count();
-        totalRevenue = filteredOrders.Sum(o => o.TotalAmount ?? 0);
-        totalDiscounts = filteredOrders.Sum(o => o.TotalDiscount ?? 0);
-        totalPayments = filteredOrders.Sum(o => o.Payments?.Sum(p => p.Amount) ?? 0);
+        totalRevenue = filteredOrders.Sum(o => o.Total ?? 0m);
+        totalDiscounts = filteredOrders.Sum(o => o.Discount ?? 0m);
+        totalQuantity = filteredOrders.Sum(o => o.Items?.Sum(p => p.Quantity ?? 0) ?? 0);
+    }
+
+    private void CalculateOrderSummaries()
+    {
+        orderSummaries = filteredOrders
+            .SelectMany(o => o.Items.Select(item => new
+            {
+                o.OrderDate,
+                item.ProductName,
+                item.Image,
+                item.NameDisplay,
+                item.Quantity,
+                item.Price
+            }))
+            .GroupBy(x => new { x.OrderDate.Date, x.ProductName, x.Image, x.NameDisplay })
+            .Select(g => new OrderSummary
+                {
+                    OrderDate = g.Key.Date,
+                    ProductName = g.Key.ProductName,
+                    NameDisplay = g.Key.NameDisplay,
+                    Image = g.Key.Image,
+                    TotalQuantity = g.Sum(x => x.Quantity ?? 0),
+                    TotalPrice = g.Sum(x => (x.Price ?? 0) * (x.Quantity ?? 0))
+                })
+            .ToList();
     }
 
     private async Task InitializeCharts()
@@ -161,7 +221,7 @@
 
     private async Task InitializeRevenueChart()
     {
-        var monthlyRevenue = await OrderService.GetMonthlyRevenue();
+        var monthlyRevenue = await DashboardService.GetMonthlyRevenue();
 
         var labels = monthlyRevenue.Select(r => $"{r.Month}/{r.Year}").ToArray();
         var data = monthlyRevenue.Select(r => r.TotalAmount).ToArray();

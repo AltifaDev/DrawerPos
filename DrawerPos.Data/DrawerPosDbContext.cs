@@ -17,29 +17,22 @@ namespace DrawerPos.Data
         }
 
         public virtual DbSet<BillNumber> BillNumbers { get; set; }
-
         public virtual DbSet<Category> Categories { get; set; }
-
+        public virtual DbSet<Company> Companies { get; set; }
         public virtual DbSet<Customer> Customers { get; set; }
-
         public virtual DbSet<Employee> Employees { get; set; }
-
         public virtual DbSet<Inventory> Inventories { get; set; }
-
         public virtual DbSet<Order> Orders { get; set; }
-
         public virtual DbSet<OrderItem> OrderItems { get; set; }
-
         public virtual DbSet<Payment> Payments { get; set; }
-
+        public virtual DbSet<PrinterSetting> PrinterSettings { get; set; }
         public virtual DbSet<Product> Products { get; set; }
-
+        public virtual DbSet<ReceiptHeader> ReceiptHeaders { get; set; }
         public virtual DbSet<Shift> Shifts { get; set; }
-
         public virtual DbSet<Store> Stores { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-             => optionsBuilder.UseSqlServer("Data Source=ALFA\\SQLEXPRESS;Initial Catalog=DrawerPosDB;Integrated Security=True;Encrypt=False");
+            => optionsBuilder.UseSqlServer("Data Source=ALFA\\SQLEXPRESS;Initial Catalog=DrawerPosDB;Integrated Security=True;Encrypt=False");
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,7 +40,6 @@ namespace DrawerPos.Data
             {
                 entity.Property(e => e.BillNumberId).HasColumnName("BillNumberID");
                 entity.Property(e => e.BillNo).HasMaxLength(50);
-                
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -56,6 +48,26 @@ namespace DrawerPos.Data
 
                 entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
                 entity.Property(e => e.CategoryName).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<Company>(entity =>
+            {
+                entity.HasKey(e => e.CompanyId).HasName("PK__Company__2D971CACF8183BE3");
+
+                entity.ToTable("Company");
+
+                entity.Property(e => e.Branch).HasMaxLength(255);
+                entity.Property(e => e.BranchId).HasMaxLength(255);
+                entity.Property(e => e.CompanyName).HasMaxLength(255);
+                entity.Property(e => e.Email).HasMaxLength(255);
+                entity.Property(e => e.Facebookid)
+                    .HasMaxLength(255)
+                    .HasColumnName("facebookid");
+                entity.Property(e => e.LineId).HasMaxLength(125);
+                entity.Property(e => e.Phone).HasMaxLength(15);
+                entity.Property(e => e.Status).HasDefaultValue(false);
+                entity.Property(e => e.TexId).HasMaxLength(25);
+                entity.Property(e => e.TiktokId).HasMaxLength(255);
             });
 
             modelBuilder.Entity<Customer>(entity =>
@@ -112,83 +124,64 @@ namespace DrawerPos.Data
 
             modelBuilder.Entity<Order>(entity =>
             {
-                entity.HasKey(e => e.OrderId).HasName("PK__Orders__C3905BAF9B50830C");
+                entity.HasIndex(e => e.BillNo, "UQ__Orders__11F284183B3D694E").IsUnique();
 
-                entity.HasIndex(e => e.BillNo, "IX_Orders_BillNo").IsUnique();
-
-                entity.HasIndex(e => e.CustomerId, "IX_Orders_CustomerID");
-
-                entity.HasIndex(e => e.StoreId, "IX_Orders_StoreID");
-
-                entity.Property(e => e.OrderId)
-                    .HasMaxLength(10)
-                    .HasColumnName("OrderID");
-                entity.Property(e => e.BillNo).HasMaxLength(10);
-                entity.Property(e => e.CustomerId).HasColumnName("CustomerID");
+                entity.Property(e => e.BillNo).HasMaxLength(20);
                 entity.Property(e => e.Discount).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.OrderDate).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.OrderDate)
+                    .HasDefaultValueSql("(getdate())")
+                    .HasColumnType("datetime");
                 entity.Property(e => e.PaymentMethod).HasMaxLength(50);
-                entity.Property(e => e.StoreId).HasColumnName("StoreID");
                 entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 2)");
                 entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.TotalAmount).HasColumnType("decimal(10, 2)");
+                entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
                 entity.Property(e => e.TotalDiscount).HasColumnType("decimal(18, 2)");
-
-                entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.CustomerId)
-                    .HasConstraintName("FK__Orders__Customer__403A8C7D");
-
-                entity.HasOne(d => d.Store).WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.StoreId)
-                    .HasConstraintName("FK__Orders__StoreID__412EB0B6");
             });
 
             modelBuilder.Entity<OrderItem>(entity =>
             {
-                entity.HasKey(e => e.OrderItemId).HasName("PK__OrderIte__57ED06A1C7DF15C1");
+                entity.HasKey(e => e.OrderItemId).HasName("PK__OrderIte__57ED068177BB4C9D");
 
-                entity.HasIndex(e => e.BillNo, "IX_OrderItems_OrderID");
-
-                entity.HasIndex(e => e.ProductId, "IX_OrderItems_ProductID");
-
-                entity.Property(e => e.OrderItemId).HasColumnName("OrderItemID");
-                entity.Property(e => e.BillNo)
-                    .HasMaxLength(10)
-                    .HasDefaultValueSql("((0))");
+                entity.Property(e => e.BillNo).HasMaxLength(20);
                 entity.Property(e => e.Discount).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.ProductId).HasColumnName("ProductID");
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
-                entity.HasOne(d => d.BillNoNavigation).WithMany(p => p.Items)
+                // Ensure correct foreign key configuration
+                entity.HasOne(d => d.BillNoNavigation)
+                    .WithMany(p => p.Items)
                     .HasPrincipalKey(p => p.BillNo)
                     .HasForeignKey(d => d.BillNo)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_OrderItems_Orders");
+                    .HasConstraintName("FK__OrderItems__BillN__2F34F866");
 
-                entity.HasOne(d => d.Product).WithMany(p => p.OrderItems)
-                    .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__OrderItem__Produ__44FF419A");
+                entity.HasOne(p => p.Product)
+                    .WithMany()
+                    .HasForeignKey(p => p.ProductId)
+                    .HasConstraintName("FK__OrderItems__Product__2F34F866");
             });
 
             modelBuilder.Entity<Payment>(entity =>
             {
-                entity.HasKey(e => e.PaymentId).HasName("PK__Payments__9B556A58A1557B91");
+                entity.HasKey(e => e.PaymentId).HasName("PK__Payments__9B556A38A57B5333");
 
-                entity.HasIndex(e => e.BillNo, "IX_Payments_OrderID");
-
-                entity.Property(e => e.PaymentId).HasColumnName("PaymentID");
-                entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.BillNo).HasMaxLength(10);
-                entity.Property(e => e.PaymentDate)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.BillNo).HasMaxLength(20);
                 entity.Property(e => e.PaymentMethod).HasMaxLength(50);
 
                 entity.HasOne(d => d.BillNoNavigation).WithMany(p => p.Payments)
                     .HasPrincipalKey(p => p.BillNo)
                     .HasForeignKey(d => d.BillNo)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Payments_Orders");
+                    .HasConstraintName("FK__Payments__BillNo__30C33EC3");
+            });
+
+            modelBuilder.Entity<PrinterSetting>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__PrinterS__3214EC07E4B00300");
+
+                entity.Property(e => e.ColorMode).HasMaxLength(50);
+                entity.Property(e => e.PaperReprint).HasMaxLength(50);
+                entity.Property(e => e.PaperSize).HasMaxLength(50);
+                entity.Property(e => e.PrintQuality).HasMaxLength(50);
+                entity.Property(e => e.PrinterName).HasMaxLength(100);
             });
 
             modelBuilder.Entity<Product>(entity =>
@@ -208,6 +201,20 @@ namespace DrawerPos.Data
                 entity.HasOne(d => d.Category).WithMany(p => p.Products)
                     .HasForeignKey(d => d.CategoryId)
                     .HasConstraintName("FK__Products__Catego__3B75D760");
+            });
+
+            modelBuilder.Entity<ReceiptHeader>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__ReceiptH__3214EC076B06E20C");
+
+                entity.ToTable("ReceiptHeader");
+
+                entity.Property(e => e.Header1).HasMaxLength(255);
+                entity.Property(e => e.Header2).HasMaxLength(255);
+                entity.Property(e => e.Header3).HasMaxLength(255);
+                entity.Property(e => e.Header4).HasMaxLength(255);
+                entity.Property(e => e.Header5).HasMaxLength(255);
+                entity.Property(e => e.Header6).HasMaxLength(255);
             });
 
             modelBuilder.Entity<Shift>(entity =>

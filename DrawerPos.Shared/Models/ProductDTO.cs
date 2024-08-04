@@ -8,12 +8,10 @@ namespace DrawerPos.Shared.Models
 {
     public class ProductDTO
     {
-        public int ProductId { get; set; }
-        public string ProductName { get; set; } = null!;
-        public int CategoryId { get; set; }
-        public decimal Price { get; set; }
+        public string? ProductName { get; set; }
         public string? Image { get; set; }
-        public string? Unit { get; set; }
-        public string? Status { get; set; }
+        public string? NameDisplay { get; set; }
+        public decimal? Price { get; set; }
     }
+
 }

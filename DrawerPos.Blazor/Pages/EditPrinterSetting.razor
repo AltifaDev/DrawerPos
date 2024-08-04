@@ -1,0 +1,102 @@
+﻿@page "/printer-settings/edit/{Id:int}"
+@using DrawerPos.Shared
+@inject DrawerPos.Blazor.Services.PrinterSettingsService PrinterSettingsService
+@inject NavigationManager Navigation
+
+
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg p-6 ">
+<h4 class="text-2xl font-bold mb-4">เพิ่มเครื่องปริ้น</h4>
+
+<EditForm Model="@printerSetting" OnValidSubmit="Save">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="mb-4" />
+
+    <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2 text-sm">ชื่อเครื่องปริ้น:</label>
+            <InputSelect @bind-Value="printerSetting.PrinterName" class="border rounded py-2 px-3 w-full text-sm">
+            <option value="">---เลือก---</option>
+               @foreach (var pname in printerName)
+            {
+                <option value="@pname">@pname</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2 text-sm">ความละเอียด:</label>
+            <InputSelect @bind-Value="printerSetting.PrintQuality" class="border rounded py-2 px-3 w-full text-sm">
+            <option value="">---เลือก---</option>
+            @foreach (var qcolor in printQuality)
+            {
+                <option value="@qcolor">@qcolor</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2 text-sm">รูปแบบสี:</label>
+            <InputSelect @bind-Value="printerSetting.ColorMode" class="border rounded py-2 px-3 w-full text-sm">
+            <option value="">---เลือก---</option>
+                  @foreach (var pcolor in printcolors)
+            {
+                <option value="@pcolor">@pcolor</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2 text-sm">ขนาดกระดาษ:</label>
+            <InputSelect @bind-Value="printerSetting.PaperSize" class="border rounded py-2 px-3 w-full text-sm">
+            <option value="">---เลือก---</option>
+            @foreach (var size in paperSizes)
+            {
+                <option value="@size">@size</option>
+            }
+        </InputSelect>
+    </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2 text-sm">การออกใบสลิป:</label>
+            <InputSelect @bind-Value="printerSetting.PaperReprint" class="border rounded py-2 px-3 w-full text-sm">
+                <option value="">---เลือก---</option>
+                <option value="OnlyReceipt">OnlyReceipt</option>
+                <option value="ReceiptAndOrder">ReceiptAndOrder</option>
+                <option value="ReceiptAndCopied">ReceiptAndCopied</option>
+              
+            </InputSelect>
+        </div>
+    <div class="flex space-x-4">
+            <button type="submit" class="bg-blue-500 text-white rounded py-2 px-4 hover:bg-blue-700 text-sm">
+            Save
+        </button>
+            <button type="button" @onclick="Cancel" class="bg-gray-600 text-white rounded py-2 px-4 hover:bg-gray-700 text-sm">
+            Cancel
+        </button>
+    </div>
+</EditForm>
+</div>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PrinterSetting printerSetting = new PrinterSetting();
+    private List<string> paperSizes = new List<string> { "45mm", "48mm", "60mm", "63mm", "76mm", "80mm" };
+    private List<string> printcolors = new List<string> { "Greyscale", "Monochrome", "Color" };
+    private List<string> printQuality = new List<string> { "Normal", "Medium", "High", "85x72 dpi", "170x72 dbi", "170x144 dbi" };
+    private List<string> printerName = new List<string> { "Epson", "HP", "Canon", "Brother", "Fujitsu", " Star Micronics", "Zebra Technologies", "Bixolon", "POSBANK", "Sewoo", "Xprinter" };
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            printerSetting = await PrinterSettingsService.GetPrinterSettingAsync(Id);
+        }
+    }
+
+    private async Task Save()
+    {
+        await PrinterSettingsService.SavePrinterSettingAsync(printerSetting);
+        Navigation.NavigateTo("/printer-settings");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/printer-settings");
+    }
+}
+

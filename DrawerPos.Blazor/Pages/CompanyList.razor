@@ -1,0 +1,104 @@
+﻿@page "/company"
+@using DrawerPos.Shared
+@using System.Globalization
+@using DrawerPos.Blazor.Services
+@inject DrawerPos.Blazor.Services.CompanyService CompanyService
+@inject NavigationManager NavigationManager
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<div class="animate-fade-up relative pl-6 pt-6">
+    <h2 class="text-base font-semibold leading-7 text-gray-900">ข้อมูลร้านค้า/บริษัท</h2>
+    <p class="mt-1 text-sm leading-6 text-gray-600">This information will be displayed publicly so be careful what you share.</p>
+</div>
+<div class="pl-6">
+    <button class="bg-blue-500 hover:bg-blue-700 text-white  py-2 px-4 rounded-lg mt-4" @onclick="CreateCompany">เพิ่มร้านค้า/บริษัท</button>
+</div>
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg p-6">
+    @if (companies == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th class="px-6 py-3">ชื่อร้านค้า/บริษัท</th>
+                    <th class="px-6 py-3">สาขา</th>
+                    <th class="px-6 py-3">รหัสสาขา</th>
+                    <th class="px-6 py-3">Email</th>
+                    <th class="px-6 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700">
+                @foreach (var company in companies)
+                {
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="px-6 py-4">@company.CompanyName</td>
+                        <td class="px-6 py-4">@company.Branch</td>
+                        <td class="px-6 py-4">@company.BranchId</td>
+                        <td class="px-6 py-4">@company.Email</td>
+                        <td class="px-6 py-4">
+                            <button class="hover:text-blue-700 font-medium text-black  py-2 px-2 " @onclick="() => EditCompany(company.CompanyId)">Edit</button> |
+                            <button class="hover:text-blue-700 font-medium text-red-600  py-2 px-2 " @onclick="() => ConfirmDeleteCompany(company.CompanyId)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<Company> companies = null;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            companies = (await CompanyService.GetCompaniesAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            // Handle exception (log it, display error message, etc.)
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CreateCompany()
+    {
+        NavigationManager.NavigateTo("/company-form");
+    }
+
+    private void EditCompany(int companyId)
+    {
+        NavigationManager.NavigateTo($"/company-form/{companyId}");
+    }
+
+    private async Task ConfirmDeleteCompany(int companyId)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", new object[] { $"Are you sure you want to delete the company with ID {companyId}?" }))
+        {
+            await DeleteCompany(companyId);
+        }
+    }
+
+    private async Task DeleteCompany(int companyId)
+    {
+        try
+        {
+            await CompanyService.DeleteCompanyAsync(companyId);
+            companies = (await CompanyService.GetCompaniesAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            // Handle exception (log it, display error message, etc.)
+        }
+    }
+}

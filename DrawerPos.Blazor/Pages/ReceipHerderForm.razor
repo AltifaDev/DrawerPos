@@ -1,0 +1,134 @@
+﻿@page "/receipts"
+@using DrawerPos.Shared
+@using System.Globalization;
+@using DrawerPos.Blazor.Services
+@inject DrawerPos.Blazor.Services.ReceiptHeaderService ReceiptHeaderService
+@inject NavigationManager NavigationManager
+
+<div class="animate-fade-up container mx-auto mt-8">
+    <form @onsubmit="HandleSubmit" class="relative overflow-x-auto shadow-md sm:rounded-lg p-6"> 
+        <h2 class="text-base font-semibold leading-7 text-gray-900">@(receiptHeader.Id == 0 ? "เพิ่ม" : "แก้ไข") หัวข้อใบเสร็จอย่างย่อ</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">ระบุข้อมูลข้อมูลที่ต้องการให้แสดงบนหัวใบเสร็จ</p>
+        <div class="col-span-full">
+            <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 p-6">
+                <div class="text-center">
+                    @if (!string.IsNullOrEmpty(receiptHeader.HeaderImg))
+                    {
+                        <img src="@($"data:image/png;base64,{receiptHeader.HeaderImg}")" class="img-fluid mb-3 mx-auto" alt="HeaderImg" />
+                    }
+                    else
+                    {
+                        <svg class="mx-auto h-12 w-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+                        </svg>
+                    }
+                    <div class="mt-4 flex text-sm leading-6 text-gray-600">
+                        <InputFile class="sr-only" id="image" OnChange="OnInputFileChange" />
+                        <label for="image" class="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500">
+                            <span>Upload a file Logo</span>
+                        </label>
+                        <p class="pl-1">Type PNG, JPG, GIF</p>
+                    </div>
+                    <p class="text-xs leading-5 text-gray-600">Maximum up to 5MB</p>
+                </div>
+            </div>
+        </div>
+       
+        <div class="mb-4">
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="header1">ข้อความหัวใบเสร็จแถวแรก</label>
+            <input class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" id="phone" type="text" @bind="receiptHeader.Header1" />
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="header2">ข้อความหัวใบเสร็จแถวที่ 2</label>
+            <input class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" id="address" type="text" @bind="receiptHeader.Header2" />
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="header3">ข้อความหัวใบเสร็จแถวที่ 3</label>
+            <input class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" id="texId" type="text" @bind="receiptHeader.Header3" />
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="header4">ข้อความหัวใบเสร็จแถวที่ 4</label>
+            <input class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" id="facebookId" type="text" @bind="receiptHeader.Header4" />
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="header5">ข้อความหัวใบเสร็จแถวที่ 5</label>
+            <input class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" id="lineId" type="text" @bind="receiptHeader.Header5" />
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium leading-6 text-gray-900" for="header6">ข้อความหัวใบเสร็จแถวที่ 6</label>
+            <input class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" id="tiktokId" type="text" @bind="receiptHeader.Header6" />
+        </div>
+
+        <div class="mb-4">
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+                <div class="p-4 mb-4 text-sm text-blue-500 bg-blue-100 rounded-lg dark:bg-blue-200 dark:text-blue-800" role="alert">
+            @successMessage
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="p-4 mb-4 text-sm text-black bg-red-700 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
+            @errorMessage
+        </div>
+    }
+</div>
+        <div class="mb-4 flex justify-end">
+            <button class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="submit">
+                Save
+            </button>
+        </div>
+
+    </form>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private ReceiptHeader receiptHeader = new ReceiptHeader();
+    private string successMessage;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        receiptHeader = await ReceiptHeaderService.GetLatestReceiptHeaderAsync();
+        // ตรวจสอบว่ามีข้อมูลล่าสุดหรือไม่ ถ้าไม่มี อาจจะสร้าง instance ใหม่ หรือแสดงข้อความแจ้งผู้ใช้
+        if (receiptHeader == null)
+        {
+            receiptHeader = new ReceiptHeader();
+            // หรือ
+            // NavigationManager.NavigateTo("/notfound"); // ไปยังหน้าแจ้งว่าไม่พบข้อมูล
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            if (receiptHeader.Id == 0)
+            {
+                await ReceiptHeaderService.CreateReceiptHeaderAsync(receiptHeader);
+                successMessage = "Receipt header created successfully!";
+            }
+            else
+            {
+                await ReceiptHeaderService.UpdateReceiptHeaderAsync(receiptHeader.Id, receiptHeader);
+                successMessage = "Receipt header updated successfully!";
+            }
+            errorMessage = string.Empty; // Clear any previous error messages
+            NavigationManager.NavigateTo("/receipts");
+        }
+        catch (Exception ex)
+        {
+            successMessage = string.Empty; // Clear any previous success messages
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var resizedFile = await file.RequestImageFileAsync(file.ContentType, 300, 500);
+        var buffer = new byte[resizedFile.Size];
+        await resizedFile.OpenReadStream().ReadAsync(buffer);
+        receiptHeader.HeaderImg = Convert.ToBase64String(buffer);
+    }
+}

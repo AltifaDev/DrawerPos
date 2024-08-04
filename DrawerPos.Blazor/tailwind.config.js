@@ -56,6 +56,15 @@ module.exports = {
             'kanban': '28rem'
         },
         extend: {
+            keyframes: {
+                'text-shimmer': {
+                    from: { backgroundPosition: '0 0' },
+                    to: { backgroundPosition: '-200% 0' },
+                },
+            },
+            animation: {
+                'text-shimmer': 'text-shimmer 2.5s ease-out infinite alternate',
+            },
             height: {
                 '90': '24rem',
                 '128': '32rem',

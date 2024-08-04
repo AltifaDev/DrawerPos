@@ -48,7 +48,7 @@ namespace DrawerPos.API.Controllers
                 {
                     OrderItemId = itemDto.OrderItemId,
                     BillNo = itemDto.BillNo,
-                    ProductId = itemDto.ProductId,
+                    ProductId = itemDto.ProductId ?? 0,
                     Quantity = itemDto.Quantity,
                     Price = itemDto.Price,
                     Discount = itemDto.Discount
@@ -217,13 +217,35 @@ namespace DrawerPos.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrders()
         {
             try
             {
                 var orders = await _context.Orders
                     .Include(o => o.Items)
-                    .ThenInclude(oi => oi.Product)
+                        .ThenInclude(i => i.Product) // Include Product navigation property
+                    .Select(o => new OrderDTO
+                    {
+                        OrderID = o.OrderId,
+                        BillNo = o.BillNo,
+                        OrderDate = o.OrderDate,
+                        Total = o.Total,
+                        Discount = o.Discount,
+                        Items = o.Items.Select(i => new OrderItemDTO
+                        {
+                            OrderItemId = i.OrderItemId,
+                            BillNo = i.BillNo,
+                            ProductId = i.ProductId,
+                            ProductName = i.Product.ProductName,
+                            Quantity = i.Quantity,
+                            Price = i.Price,
+                            Discount = i.Discount
+                        }).ToList(),
+                        Payments = o.Payments.Select(p => new PaymentDTO
+                        {
+                            // Map PaymentDTO fields here
+                        }).ToList()
+                    })
                     .ToListAsync();
 
                 return Ok(orders);
@@ -234,141 +256,5 @@ namespace DrawerPos.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-        [HttpGet("GetDateOrders")]
-        public async Task<ActionResult<IEnumerable<GroupedOrderItem>>> GetDateOrders([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
-        {
-            try
-            {
-                IQueryable<Order> query = _context.Orders;
-
-                if (startDate.HasValue)
-                {
-                    query = query.Where(o => o.OrderDate >= startDate);
-                }
-
-                if (endDate.HasValue)
-                {
-                    query = query.Where(o => o.OrderDate <= endDate);
-                }
-
-                var orders = await query
-                    .Include(o => o.Items)
-                    .ThenInclude(oi => oi.Product)
-                    .ToListAsync();
-
-                var groupedOrderItems = orders
-                    .SelectMany(o => o.Items)
-                    .GroupBy(oi => oi.Product)
-                    .Select(g => new GroupedOrderItem
-                    {
-                        Products = g.Key,
-                        TotalQuantity = g.Sum(oi => oi.Quantity ?? 0),
-                        TotalPrice = g.Sum(oi => (oi.Price) * oi.Quantity ?? 0)
-                    })
-                    .OrderBy(g => g.Products.NameDisplay)
-                    .ToList();
-
-                return Ok(groupedOrderItems);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while fetching date orders.");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-        [HttpGet("monthly-revenue")]
-        public async Task<ActionResult<IEnumerable<MonthlyRevenueDto>>> GetMonthlyRevenue()
-        {
-            try
-            {
-                var monthlyRevenue = await _context.Orders
-                    .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
-                    .Select(g => new MonthlyRevenueDto
-                    {
-                        Year = g.Key.Year,
-                        Month = g.Key.Month,
-                        TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
-                    })
-                    .OrderBy(r => r.Year).ThenBy(r => r.Month)
-                    .ToListAsync();
-
-                return Ok(monthlyRevenue);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while fetching monthly revenue.");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-        [HttpGet("weekly-monthly-revenue")]
-        public async Task<ActionResult<WeeklyMonthlyRevenueDto>> GetWeeklyMonthlyRevenue()
-        {
-            try
-            {
-                var today = DateTime.Today;
-                var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
-                var startOfMonth = new DateTime(today.Year, today.Month, 1);
-
-                var lastWeekRevenue = await _context.Orders
-                    .Where(o => o.OrderDate >= startOfWeek)
-                    .GroupBy(o => o.OrderDate.Date)
-                    .Select(g => new DailyRevenueDto
-                    {
-                        Date = g.Key,
-                        TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
-                    })
-                    .ToListAsync();
-
-                var thisMonthRevenue = await _context.Orders
-                    .Where(o => o.OrderDate >= startOfMonth)
-                    .GroupBy(o => o.OrderDate.Date)
-                    .Select(g => new DailyRevenueDto
-                    {
-                        Date = g.Key,
-                        TotalAmount = g.Sum(o => o.TotalAmount ?? 0)
-                    })
-                    .ToListAsync();
-
-                return Ok(new WeeklyMonthlyRevenueDto
-                {
-                    LastWeekRevenue = lastWeekRevenue,
-                    ThisMonthRevenue = thisMonthRevenue
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while fetching weekly and monthly revenue.");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-    }
-
-    public class WeeklyMonthlyRevenueDto
-    {
-        public List<DailyRevenueDto> LastWeekRevenue { get; set; }
-        public List<DailyRevenueDto> ThisMonthRevenue { get; set; }
-    }
-
-    public class DailyRevenueDto
-    {
-        public DateTime Date { get; set; }
-        public decimal TotalAmount { get; set; }
-    }
-
-    public class MonthlyRevenueDto
-    {
-        public int Year { get; set; }
-        public int Month { get; set; }
-        public decimal TotalAmount { get; set; }
-    }
-
-    public class GroupedOrderItem
-    {
-        public Product Products { get; set; }
-        public int TotalQuantity { get; set; }
-        public decimal TotalPrice { get; set; }
     }
 }

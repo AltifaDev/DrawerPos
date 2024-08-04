@@ -25,7 +25,12 @@ builder.Services.AddSweetAlert2();
 // Add ProductService, CategoryService, and OrderService
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<CompanyService>();
+builder.Services.AddScoped<ReceiptHeaderService>();
+builder.Services.AddScoped<PrinterSettingsService>();
+builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+
 // Configure logging
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
