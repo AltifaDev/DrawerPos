@@ -36,7 +36,7 @@ namespace DrawerPos.Data
             if (!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseSqlServer(
-                    "Data Source=ALFA\\SQLEXPRESS;Initial Catalog=DrawerData;Integrated Security=True;Encrypt=False",
+                    "Data Source=db6953.public.databaseasp.net;Initial Catalog=db6953;User ID=db6953;Password=fK%27_iQRz6+;Encrypt=False",
                     b => b.MigrationsAssembly("DrawerPos.Data"));
             }
         }
