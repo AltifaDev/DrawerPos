@@ -246,3 +246,9 @@ code {
 .delay-500 {
     animation-delay: 0.5s;
 }
+.flexed {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* ปรับ 150px ตามขนาดที่ต้องการ */
+    grid-gap: 20px; /* ปรับระยะห่างระหว่าง items ตามต้องการ */
+    
+}

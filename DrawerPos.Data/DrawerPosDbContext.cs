@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DrawerPos.Shared;
+using DrawerPos.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrawerPos.Data
@@ -30,13 +31,23 @@ namespace DrawerPos.Data
         public virtual DbSet<ReceiptHeader> ReceiptHeaders { get; set; }
         public virtual DbSet<Shift> Shifts { get; set; }
         public virtual DbSet<Store> Stores { get; set; }
+        public virtual DbSet<MethodPayment> MethodPayments { get; set; }
+
+        public virtual DbSet<ProductIngredient> ProductIngredients { get; set; }
+        public virtual DbSet<Ingredient> Ingredients { get; set; }
+        public virtual DbSet<Unit> Units { get; set; }
+        public virtual DbSet<IngredientStock> IngredientStocks { get; set; }
+        
+        public virtual DbSet<Transaction> Transactions { get; set; }
+        public virtual DbSet<TransactionDetail> TransactionDetails { get; set; }
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseSqlServer(
-                    "Data Source=db6953.public.databaseasp.net;Initial Catalog=db6953;User ID=db6953;Password=fK%27_iQRz6+;Encrypt=False",
+                    "Data Source=ALFA\\SQLEXPRESS;Initial Catalog=DrawerData;Integrated Security=True;Encrypt=False",
                     b => b.MigrationsAssembly("DrawerPos.Data"));
             }
         }
@@ -128,7 +139,14 @@ namespace DrawerPos.Data
                     .HasForeignKey(d => d.StoreId)
                     .HasConstraintName("FK__Inventory__Store__5070F446");
             });
-
+            modelBuilder.Entity<MethodPayment>(entity =>
+            {
+                entity.HasKey(mp => mp.QrId); // Set QrId as the primary key
+                entity.Property(mp => mp.MethodName).HasMaxLength(255);
+                entity.Property(mp => mp.MethodType).HasMaxLength(255);
+                entity.Property(mp => mp.MethodNumber);
+                entity.Property(mp => mp.MethodStatus).HasMaxLength(100);
+            });
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasIndex(e => e.BillNo, "UQ__Orders__11F284183B3D694E").IsUnique();

@@ -1,8 +1,8 @@
 ﻿@page "/categories/create"
-@inject DrawerPos.Blazor.Services.CategoryService CategoryService
+@inject CategoryService CategoryService
 @inject NavigationManager Navigation
-@using DrawerPos.Shared
 
+ 
 
 <EditForm Model="category" OnValidSubmit="HandleValidSubmit" class="max-w-sm mx-auto p-6">
         <DataAnnotationsValidator />

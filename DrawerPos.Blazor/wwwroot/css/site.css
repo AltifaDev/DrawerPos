@@ -63,6 +63,8 @@ html,
 
 body {
     /*font-family: Kanit;*/
+    font-family: "Inter",Kanit, sans-serif;
+    font-optical-sizing: auto;
     margin: 0;
     /* 1 */
     line-height: inherit;

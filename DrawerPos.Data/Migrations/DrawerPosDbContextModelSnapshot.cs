@@ -194,6 +194,59 @@ namespace DrawerPos.Data.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("DrawerPos.Shared.Ingredient", b =>
+                {
+                    b.Property<int>("IngredientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IngredientId"));
+
+                    b.Property<string>("IngredientName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("IngredientId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("Ingredients");
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.IngredientStock", b =>
+                {
+                    b.Property<int>("IngredientStockId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IngredientStockId"));
+
+                    b.Property<DateTime>("ExpirationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("QuantityInStock")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReorderPoint")
+                        .HasColumnType("int");
+
+                    b.HasKey("IngredientStockId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.ToTable("IngredientStocks");
+                });
+
             modelBuilder.Entity("DrawerPos.Shared.Inventory", b =>
                 {
                     b.Property<int>("InventoryId")
@@ -225,6 +278,34 @@ namespace DrawerPos.Data.Migrations
                     b.HasIndex(new[] { "StoreId" }, "IX_Inventory_StoreID");
 
                     b.ToTable("Inventory", (string)null);
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.MethodPayment", b =>
+                {
+                    b.Property<int>("QrId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QrId"));
+
+                    b.Property<string>("MethodName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("MethodNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MethodStatus")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("MethodType")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("QrId");
+
+                    b.ToTable("MethodPayments");
                 });
 
             modelBuilder.Entity("DrawerPos.Shared.OrderItem", b =>
@@ -381,6 +462,32 @@ namespace DrawerPos.Data.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("DrawerPos.Shared.ProductIngredient", b =>
+                {
+                    b.Property<int>("ProductIngredientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductIngredientId"));
+
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ProductIngredientId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductIngredients");
+                });
+
             modelBuilder.Entity("DrawerPos.Shared.ReceiptHeader", b =>
                 {
                     b.Property<int>("Id")
@@ -480,6 +587,75 @@ namespace DrawerPos.Data.Migrations
                     b.ToTable("Stores");
                 });
 
+            modelBuilder.Entity("DrawerPos.Shared.Transaction", b =>
+                {
+                    b.Property<int>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"));
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TransactionId");
+
+                    b.ToTable("Transactions");
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.TransactionDetail", b =>
+                {
+                    b.Property<int>("TransactionDetailId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionDetailId"));
+
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PricePerUnit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TransactionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TransactionDetailId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("TransactionDetails");
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.Unit", b =>
+                {
+                    b.Property<int>("UnitId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UnitId"));
+
+                    b.Property<string>("UnitName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UnitId");
+
+                    b.ToTable("Units");
+                });
+
             modelBuilder.Entity("Order", b =>
                 {
                     b.Property<string>("BillNo")
@@ -536,6 +712,28 @@ namespace DrawerPos.Data.Migrations
                         .HasConstraintName("FK__Employees__Store__47DBAE45");
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.Ingredient", b =>
+                {
+                    b.HasOne("DrawerPos.Shared.Unit", "Unit")
+                        .WithMany("Ingredients")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.IngredientStock", b =>
+                {
+                    b.HasOne("DrawerPos.Shared.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
                 });
 
             modelBuilder.Entity("DrawerPos.Shared.Inventory", b =>
@@ -595,6 +793,25 @@ namespace DrawerPos.Data.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("DrawerPos.Shared.ProductIngredient", b =>
+                {
+                    b.HasOne("DrawerPos.Shared.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrawerPos.Shared.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("DrawerPos.Shared.Shift", b =>
                 {
                     b.HasOne("DrawerPos.Shared.Employee", "Employee")
@@ -603,6 +820,25 @@ namespace DrawerPos.Data.Migrations
                         .HasConstraintName("FK__Shifts__Employee__4AB81AF0");
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.TransactionDetail", b =>
+                {
+                    b.HasOne("DrawerPos.Shared.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrawerPos.Shared.Transaction", "Transaction")
+                        .WithMany("TransactionDetails")
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("Order", b =>
@@ -647,6 +883,16 @@ namespace DrawerPos.Data.Migrations
                     b.Navigation("Inventories");
 
                     b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.Transaction", b =>
+                {
+                    b.Navigation("TransactionDetails");
+                });
+
+            modelBuilder.Entity("DrawerPos.Shared.Unit", b =>
+                {
+                    b.Navigation("Ingredients");
                 });
 
             modelBuilder.Entity("Order", b =>

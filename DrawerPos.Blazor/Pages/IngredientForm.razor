@@ -1,0 +1,79 @@
+﻿@page "/ingredient/AddEdit/{Id:int?}"
+
+@inject IngredientService IngredientService
+@inject UnitService UnitService
+@inject NavigationManager NavigationManager
+
+<div class="flex justify-center items-center mt-6">
+    <div class="w-full   p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+        <div class="max-w-md mx-auto">
+        <h2 class="mb-4 text-4xl font-bold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">@(Ingredient.IngredientId == 0 ? "เพิ่ม" : "แก้ไข") <span class="text-blue-600 dark:text-blue-500">วัตถุดิบ</span> (Ingredient)</h2>
+ 
+
+    <form @onsubmit="HandleValidSubmit">
+        <div class="mb-4">
+                    <label class="block text-sm font-medium leading-6 text-gray-900" for="ingredientName">ชื่อวัตถุดิบ</label>
+                    <input class="block w-80 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" id="ingredientName" @bind="Ingredient.IngredientName" required />
+        </div>
+        <div class="mb-4">
+                    <label class="block text-sm font-medium leading-6 text-gray-900" for="unit">หน่วย</label>
+
+                    <select class="block w-80 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6" id="unit" @bind="Ingredient.UnitId" required>
+                <option value="">---เลือก---</option>
+                @foreach (var unit in Units)
+                {
+                    <option value="@unit.UnitId">@unit.UnitName</option>
+                }
+            </select>
+        </div>
+        <button class="m-4 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="submit">Save</button>
+        <button class="m-4 text-white bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" type="button" @onclick="Cancel">Cancel</button>
+    </form>
+</div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private IngredientCreateDto Ingredient { get; set; } = new IngredientCreateDto();
+    private List<Unit> Units { get; set; } = new List<Unit>();
+    private string PageTitle => Id == null ? "Add New Ingredient" : "Edit Ingredient";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Units = await UnitService.GetUnitsAsync();
+
+        if (Id != null)
+        {
+            var ingredient = await IngredientService.GetIngredientByIdAsync(Id.Value);
+            // Map the Ingredient to IngredientCreateDto
+            Ingredient = new IngredientCreateDto
+                {
+                    IngredientId = ingredient.IngredientId,
+                    IngredientName = ingredient.IngredientName,
+                    UnitId = ingredient.UnitId,
+                    
+                };
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Id == null)
+        {
+            await IngredientService.AddIngredientAsync(Ingredient);
+        }
+        else
+        {
+            await IngredientService.UpdateIngredientAsync(Id.Value, Ingredient);
+        }
+
+        NavigationManager.NavigateTo("/ingredients");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/ingredients");
+    }
+}

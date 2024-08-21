@@ -1,8 +1,8 @@
 @page "/categories/edit/{id:int}"
-@inject DrawerPos.Blazor.Services.CategoryService CategoryService
+@inject CategoryService CategoryService
 @inject NavigationManager Navigation
-@using DrawerPos.Shared
 
+ 
 <h3>Edit Category</h3>
 
 @if (category == null)

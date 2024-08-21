@@ -1,0 +1,88 @@
+﻿@page "/methodpayments"
+
+@inject MethodPaymentService MethodPaymentService
+@inject NavigationManager NavigationManager
+
+
+<div class="flex justify-center items-center mt-6">
+    <div class="w-full   p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+        <div class="flex justify-between">
+            <h3 class="text-xl font-bold mb-4">รายการชำระเงินผ่าน QR PromptPay</h3>
+            <button class="m-4 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" @onclick="CreateNewMethodPayment">เพิ่มช่องทางชำระ</button>
+        </div>
+        <div class="relative overflow-x-auto">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+
+                    <tr class="bg-gray-200 text-left">
+
+                        <th class="border px-4 py-2">ชื่อรายการ</th>
+                        <th class="border px-4 py-2">การรับชำระ</th>
+                        <th class="border px-4 py-2">หมายเลข</th>
+                        <th class="border px-4 py-2">สถานะการใช้งาน</th>
+                        <th class="border px-4 py-2">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var methodPayment in methodPayments)
+                    {
+                        <tr class="hover:bg-gray-100">
+
+                            <td class="border px-4 py-2">@methodPayment.MethodName</td>
+                            <td class="border px-4 py-2">@methodPayment.MethodType</td>
+                            <td class="border px-4 py-2">@methodPayment.MethodNumber</td>
+                            @if (@methodPayment.MethodStatus == "Yes")
+                            {
+                                <td class="border px-4 py-2">
+                                    <div class="flex items-center">
+                                        <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> ใช้งาน
+                                    </div>
+                                </td>
+                            }
+                            else
+                            {
+                                <td class="border px-4 py-2">
+                                    <div class="flex items-center">
+                                        <div class="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div> ไม่ได้ใช้งาน
+                                    </div>
+                                </td>
+                            }
+                            <td class="border px-4 py-2">
+                                <button class="text-blue-600 hover:text-blue-800" @onclick="() => EditMethodPayment(methodPayment.QrId)">Edit</button>
+                                <span> | </span>
+                                <button class="text-red-600 hover:text-red-800 ml-4" @onclick="() => DeleteMethodPayment(methodPayment.QrId)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+@code {
+    private List<MethodPayment> methodPayments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        methodPayments = await MethodPaymentService.GetMethodPaymentsAsync();
+    }
+
+    private void EditMethodPayment(int qrId)
+    {
+        // Navigate to the edit page with the specific QR ID
+        NavigationManager.NavigateTo($"/methodpaymentform/{qrId}");
+    }
+
+    private async Task DeleteMethodPayment(int qrId)
+    {
+        await MethodPaymentService.DeleteMethodPaymentAsync(qrId);
+        methodPayments.RemoveAll(m => m.QrId == qrId);
+    }
+
+    private void CreateNewMethodPayment()
+    {
+        // Navigate to the create form
+        NavigationManager.NavigateTo("/methodpaymentform");
+    }
+}

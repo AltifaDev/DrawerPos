@@ -1,49 +1,95 @@
 ﻿@page "/orders"
-@using DrawerPos.Blazor.Services
-@using DrawerPos.Shared
-@using System.Globalization;
-@inject DrawerPos.Blazor.Services.ProductService ProductService
-@inject DrawerPos.Blazor.Services.ReceiptHeaderService ReceiptHeaderService
-@inject DrawerPos.Blazor.Services.PrinterSettingsService PrinterSettingsService
+@inject ProductService ProductService
+@inject ReceiptHeaderService ReceiptHeaderService
+@inject PrinterSettingsService PrinterSettingsService
+@inject MethodPaymentService MethodPaymentService
+@inject PromptPayService PromptPayService
 @inject NavigationManager Navigation
-@inject SweetAlertService Swal
-@using Microsoft.JSInterop
-@using System.Text.Json
+@using DrawerPos.Blazor.Components
 @inject IJSRuntime JS
 @inject IOrderService OrderService
-@using DrawerPos.Blazor.Components
 
+ 
 <!--<AlertComponent @ref="alertComponent" />-->
+ 
+<Modal IsVisible="@showModal" IsVisibleChanged="@((value) => showModal = value)">
+     <div class="bg-white rounded-lg shadow-sm items-center p-6 max-w-md mx-auto">
+        <div class="flex flex-col items-center p-4">
+            <img src="thai_qr.png" class="mb-4" />
+
+            @if (!string.IsNullOrEmpty(qrCode))
+            {
+                <div id="qrcode"></div>
+            }
+           
+        </div>
+        @if (methodPayment != null)
+        {
+
+            <div class="flex justify-between mt-5 pl-8 px-6">
+                <span class="font-semibold text-xl">@methodPayment[0].MethodName</span>
+                <span class="font-semibold text-xl">@Total.ToString("0") บาท</span>
+            </div>
+            <div class="flex justify-between pl-8 px-6">
+                <span class="font-normal text-xs">@methodPayment[0].MethodType</span>
+                <span class="font-normal text-xs">@methodPayment[0].MethodNumber</span>
+                
+            </div>
+        }
+        <div class="flex justify-center pl-8 px-6">
+            <button type="button" @onclick="async () => { SetPaymentMethodToQrPay(); await TriggerFormSubmit();}" class="w-80 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 inline-flex items-center me-2 mb-2 mt-4 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+            <svg class="w-4 h-4 me-2 -ms-1" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="bitcoin" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M504 256c0 136.1-111 248-248 248S8 392.1 8 256 119 8 256 8s248 111 248 248zm-141.7-35.33c4.937-32.1-20.19-50.74-54.55-62.57l11.15-44.7-27.21-6.781-10.85 43.52c-7.154-1.783-14.5-3.464-21.8-5.13l10.93-43.81-27.2-6.781-11.15 44.69c-5.922-1.349-11.73-2.682-17.38-4.084l.031-.14-37.53-9.37-7.239 29.06s20.19 4.627 19.76 4.913c11.02 2.751 13.01 10.04 12.68 15.82l-12.7 50.92c.76 .194 1.744 .473 2.829 .907-.907-.225-1.876-.473-2.876-.713l-17.8 71.34c-1.349 3.348-4.767 8.37-12.47 6.464 .271 .395-19.78-4.937-19.78-4.937l-13.51 31.15 35.41 8.827c6.588 1.651 13.05 3.379 19.4 5.006l-11.26 45.21 27.18 6.781 11.15-44.73a1038 1038 0 0 0 21.69 5.627l-11.11 44.52 27.21 6.781 11.26-45.13c46.4 8.781 81.3 5.239 95.99-36.73 11.84-33.79-.589-53.28-25-65.99 17.78-4.098 31.17-15.79 34.75-39.95zm-62.18 87.18c-8.41 33.79-65.31 15.52-83.75 10.94l14.94-59.9c18.45 4.603 77.6 13.72 68.81 48.96zm8.417-87.67c-7.673 30.74-55.03 15.12-70.39 11.29l13.55-54.33c15.36 3.828 64.84 10.97 56.85 43.03z"></path></svg>
+           ชำระเรียบร้อย
+        </button>
+        </div>
+    </div>
+</Modal>
 
 <div class="mx-auto">
 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div class="alert alert-danger">@errorMessage</div>
+       <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold">ผิดพลาด!</strong>
+            <span class="block sm:inline">@errorMessage</span>
+            <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" /></svg>
+            </span>
+        </div>
     }
 
     <div class="flex flex-col md:flex-row mt-4">
         <!-- Left Side: Products -->
-        <div class="md:w-2/3 p-4">
+        <div class="md:w-2/3 p-4 mr-2">
 
             <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
                 <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="default-tab" role="tablist">
                     @foreach (var category in categories)
                     {
                         <li class="mr-2" role="presentation">
-                            <button class="inline-block p-4 border-b-2 rounded-t-sm @(category == selectedCategory ? "border-blue-500" : "border-transparent")"
+                            <button class="inline-block p-4 border-b-2 rounded-t-sm
+                    @(category == selectedCategory ? "border-blue-500" : "border-transparent")"
                                     @onclick="() => SelectCategory(category)"
                                     aria-selected="@(category == selectedCategory)">
                                 @category.CategoryName
                             </button>
                         </li>
                     }
+ 
                 </ul>
             </div>
-            <div class="flex flex-wrap justify-between">
+            <div  class="flexed">
                 @if (products == null)
                 {
-                    <div>Loading products...</div>
+                    <div class="text-center">
+                        <div role="status">
+                            <svg aria-hidden="true" class="inline w-10 h-10 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+                            </svg>
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
                 }
                 else if (!filteredProducts.Any())
                 {
@@ -53,6 +99,10 @@
                                 <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
                                 <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
                             </svg>
+                            <div role="status" class="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2">
+                                <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" /><path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" /></svg>
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </div>
                         <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-full mb-4"></div>
                         <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
@@ -65,6 +115,10 @@
                                 <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
                                 <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
                             </svg>
+                            <div role="status" class="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2">
+                                <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" /><path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" /></svg>
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </div>
                         <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-full mb-4"></div>
                         <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
@@ -77,6 +131,10 @@
                                 <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
                                 <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
                             </svg>
+                            <div role="status" class="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2">
+                                <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" /><path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" /></svg>
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </div>
                         <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-full mb-4"></div>
                         <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
@@ -89,6 +147,10 @@
                                 <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
                                 <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
                             </svg>
+                            <div role="status" class="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2">
+                                <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" /><path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" /></svg>
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </div>
                         <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-full mb-4"></div>
                         <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
@@ -101,21 +163,26 @@
                                 <path d="M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z" />
                                 <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z" />
                             </svg>
+                            <div role="status" class="absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2">
+                                <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" /><path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" /></svg>
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </div>
                         <div class="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-full mb-4"></div>
                         <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
                         <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
                         <div class="h-2 bg-gray-200 rounded-full dark:bg-gray-700"></div>
-                    </div>
+                    </div>                    
                 }
                 else
                 {
                     @foreach (var product in filteredProducts.Select((item, index) => new { item, index }))
                     {
-                        <button id="productlist" class="animate-fade-up delay-@((product.index + 1) * 100) product-item cursor-pointer" @onclick="() => AddToCart(product.item)">
+                        <div class="animate-fade-up delay-@((product.index + 1) * 100) product-item cursor-pointer">
+                        <button id="productlist" @onclick="() => AddToCart(product.item)">
                             <div class="relative flex flex-col items-center bg-white border rounded-lg hover:shadow-lg p-2 w-24 h-24 @(Cart.Any(item => item.Product.ProductId == product.item.ProductId) ? "border-blue-500 border-2" : "border-gray-200")">
                                 <div class="w-full h-full overflow-hidden">
-                                    <img src="@($"data:image/png;base64,{product.item.Image}")" alt="@product.item.ProductName" class="w-full h-full object-contain">
+                                        <img src="@($"data:image/png;base64,{product.item.Image}")" alt="@product.item.ProductName" class="w-full h-full object-contain">
                                 </div>
                                 <div class="absolute bottom-0 right-0 bg-gray-100 w-8 rounded">
                                     <span class="text-xs text-gray-500 font-semibold">@product.item.ProductSize</span>
@@ -128,11 +195,12 @@
                                 }
                             </div>
                             <div class="text-center mt-2">
-                                <p class="text-xs font-bold">@product.item.NameDisplay</p>
+                                <p class="text-sm font-normal">@product.item.NameDisplay</p>
                                 <span class="text-xs text-gray-500 dark:text-gray-400">@product.item.ProductName</span>
                                 <p class="text-sm font-semibold">@product.item.Price.ToString("C")</p>
                             </div>
                         </button>
+                        </div>
                     }
                 }
             </div>
@@ -141,12 +209,12 @@
             <DataAnnotationsValidator />
             <ValidationSummary />
             <div class="animate-fade-down border-none w-full rounded mt-2">
-                <div class="absolute w-full overflow-auto p-6 rounded-lg" style="height:400px;background: linear-gradient(190deg, rgba(224,222,222,1) 0%, rgba(251,251,251,1) 80%, rgba(255,255,255,1) 100%);">
+                <div class="absolute w-full overflow-auto p-2 rounded-lg" style="height:430px;background: linear-gradient(190deg, rgba(224,222,222,1) 0%, rgba(251,251,251,1) 80%, rgba(255,255,255,1) 100%);">
                     <div class="p-2 mx-auto ml-1 mb-2 w-full h-14">
                         <div class="flex justify-between items-center mb-2">
                             <div class="ml-2">
-                                <h2 class="text-md font-semibold">รายการสั่งซื้อ</h2>
-                                <p class="text-sm text-gray-500">เลขที่ใบเสร็จ @lastBillNo</p>
+                                <h2 class="text-md font-semibold">ORDER</h2>
+                                <p class="text-sm text-gray-500">@lastBillNo</p>
                             </div>
                             <div class="flex space-x-2">
                                 <button class="bg-gray-200 p-1 rounded-full hover:bg-gray-300" onclick="toggleDrawerPrinter()">
@@ -175,10 +243,10 @@
                              style="@(selectedItem == item ? "max-height: 300px; background-color: #353535; color:#ffffff" : "max-height: 80px; background-color: #ffffff; color:#000000")">
                             <div class="flex w-full items-start justify-between">
                                 <div class="w-14 h-14 overflow-hidden">
-                                    <img src="@($"data:image/png;base64,{item.Product.Image}")" alt="@item.Product.ProductName" class="w-full h-full object-contain">
+                                    <img src="@($"data:image/png;base64,{item.Product.Image}")" alt="@item.Product.ProductName" class="w-full h-full object-contain"> 
                                 </div>
                                 <div class="flex flex-col items-center">
-                                    <span class="text-sm mt-2">@item.Product.ProductName (@item.Product.ProductSize)</span>
+                                    <span class="text-xs mt-2">@item.Product.ProductName (@item.Product.ProductSize)</span>
                                     <span class="text-md font-bold">@item.TotalPrice.ToString("0.##") ฿</span>
                                 </div>
                                 <div class="flex flex-col items-center mt-0 md:mb-0 md:mr-4">
@@ -206,34 +274,45 @@
                         </div>
                     }
                 </div>
-                <div class="absolute border-none p-6 blur-bg w-full" style="top:390px">
+              
+                <div class="absolute border-none p-6 blur-bg w-full" style="top:415px;">
                     <div class="flex items-center justify-between">
-                        <span class="font-medium">จำนวนรายการ:</span>
-                        <span class="font-semibold">@Cart.Sum(item => item.Quantity).ToString()</span>
+                        <span class="font-small">Amount:</span>
+                        <span class="font-semibold px-4">@Cart.Sum(item => item.Quantity).ToString()</span>
                     </div>
                     <div class="flex items-center justify-between hidden">
-                        <span class="font-medium">Sub Total:</span>
+                        <span class="font-small">Sub Total:</span>
                         <span class="font-semibold">@SubTotal.ToString("C", customThaiCulture)</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="font-medium">ส่วนลด:</span>
+                        <span class="font-small">Discount:</span>
                         <span class="font-semibold">@Discount.ToString("C0", customThaiCulture)</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="font-medium">รับเงิน</span>
-                        <input type="text" id="balance-display" class="font-semibold text-end border-none h-7" style="text-align:right; padding-right:0"
+                        <span class="font-small">Receive</span>
+                        <input type="text" id="balance-display" class="font-semibold text-end border-none h-7 w-full" style="padding-right:0px"
                                value="@BalanceFormatted" readonly />
                     </div>
                     <div class="flex items-center justify-between hidden">
-                        <span class="font-medium">ภาษีมูลค่าเพิ่ม:</span>
+                        <span class="font-small">Tax:</span>
                         <span class="font-semibold">@Tax.ToString("C", customThaiCulture)</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="font-semibold ">ยอดรวม:</span>
+                        <span class="font-small ">Total:</span>
                         <span class="font-semibold text-blue-500">@Total.ToString("C0", customThaiCulture)</span>
                     </div>
+                    @if (balance > 0){
+                        @if(balance >= Total){
+                         <div class="flex items-center justify-between">
+                        <span class="font-small ">เงินทอน:</span>
+                        <span class="font-semibold text-blue-600">@ChangeCash.ToString("C0", customThaiCulture)</span>
+                        </div>
+                        }
+                    }
+                   
+                    
                     <div class="flex items-center justify-between hidden">
-                        <span class="font-semibold">จ่ายโดย</span>
+                        <span class="font-small">จ่ายโดย</span>
                         <input type="text" @bind="paymentMethod" id="payment-method" class="font-semibold text-end border-none h-7 w-full" style="text-align:right; padding-right:0" />
                     </div>
                     <hr class="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700">
@@ -269,6 +348,7 @@
                         <span class="sr-only">Close menu</span>
                     </button>
                     <div class="p-4 w-full bg-white mt-10 bottom-0">
+                        <span class="text-center  ml-6 p-8 text-gray-400">ยอดที่ต้องชำระ : <span class="text-lg font-bold  text-gray-500">@Total.ToString("C0", customThaiCulture)</span></span>
                         <input type="number" @bind="balance" @bind:event="oninput" class="animate-fade-down text-center text-xl font-bold py-4 mb-6 w-full rounded-full text-gray-500 dark:text-gray-400" />
                         <div class="animate-fade-up grid grid-cols-4 gap-2">
                             @foreach (var btnValue in new[] { "7", "8", "9", "100", "4", "5", "6", "500", "1", "2", "3", "1000", "00", "0", "<", "C" })
@@ -286,20 +366,23 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
                                 </svg>
 
-                                <span> &nbsp;&nbsp;ชำระเงิน </span>
+                                <span> &nbsp;&nbsp;ชำระเงิน (เงินทอน @ChangeCash.ToString("C0", customThaiCulture)) </span>
                             </button>
                         }
                         else
                         {
                             <button id="open-drawer-button" type="submit" class="animate-fade-down w-full text-center inline-flex items-center px-4 py-4 mt-4 text-sm font-medium text-center text-white bg-red-500 rounded-lg focus:ring-4">
-                                <span>ยอดเงินไม่เพียงพอ </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon flat-color rtl:rotate-180 w-8 h-8 ">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                                </svg>
+                                <span>ชำระเพิ่มอีก @Remaining.ToString("C0", customThaiCulture) </span>
                                 <svg class="rtl:rotate-180 w-5 h-5 ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                                 </svg>
                             </button>
                         }
                         <div class="flex items-center mt-2">
-                            <button type="submit" id="qrpay-button" @onclick="SetPaymentMethodToQrPay" class="animate-fade-up text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
+                            <button type="submit" id="qrpay-button" @onclick="OpenModal" class="animate-fade-up text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2" data-drawer-target="drawer-backdrop" data-drawer-show="drawer-backdrop" data-drawer-backdrop="true" aria-controls="drawer-backdrop">
                                 <div class="flex flex-col items-center">
                                     <svg fill="#000000" class="icon flat-color rtl:rotate-180 w-8 h-8 " viewBox="0 0 24 24" id="scan" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg"><path id="secondary" d="M21,13H3a1,1,0,0,1,0-2H21a1,1,0,0,1,0,2Z" style="fill: rgb(44, 169, 188);"></path><path id="primary" d="M3,8A1,1,0,0,1,2,7V4A2,2,0,0,1,4,2H7A1,1,0,0,1,7,4H4V7A1,1,0,0,1,3,8ZM22,7V4a2,2,0,0,0-2-2H17a1,1,0,0,0,0,2h3V7a1,1,0,0,0,2,0ZM8,21a1,1,0,0,0-1-1H4V17a1,1,0,0,0-2,0v3a2,2,0,0,0,2,2H7A1,1,0,0,0,8,21Zm14-1V17a1,1,0,0,0-2,0v3H17a1,1,0,0,0,0,2h3A2,2,0,0,0,22,20Z" style="fill: rgb(0, 0, 0);"></path></svg>
                                     <span>QrPay</span>
@@ -349,7 +432,7 @@
                                         <path d="m 5 1 c -0.550781 0 -1 0.449219 -1 1 v 1 h 8 v -1 c 0 -0.550781 -0.449219 -1 -1 -1 z m -3 3 c -1.109375 0 -2 0.890625 -2 2 v 4 c 0 1.109375 0.890625 2 2 2 v 1 c 0 1.089844 0.910156 2 2 2 h 3 v -2 h -3 v -3 h 3 v -3 h 9 v -1 c 0 -1.109375 -0.890625 -2 -2 -2 z m 0 0" fill="#2e3436" />
                                         <path class="warning" d="m 9.5 8 c -0.832031 0 -1.5 0.667969 -1.5 1.5 v 5 c 0 0.832031 0.667969 1.5 1.5 1.5 h 5 c 0.832031 0 1.5 -0.667969 1.5 -1.5 v -5 c 0 -0.832031 -0.667969 -1.5 -1.5 -1.5 z m 1.5 1 h 2 v 2.5 s 0 0.5 -0.5 0.5 h -1 c -0.5 0 -0.5 -0.5 -0.5 -0.5 z m 0.5 4 h 1 c 0.277344 0 0.5 0.222656 0.5 0.5 v 1 c 0 0.277344 -0.222656 0.5 -0.5 0.5 h -1 c -0.277344 0 -0.5 -0.222656 -0.5 -0.5 v -1 c 0 -0.277344 0.222656 -0.5 0.5 -0.5 z m 0 0" fill="#ff7800" />
                                     </svg>
-                                    <span>ตั้งค่าเครื่องปริ้นท์</span>
+                                    <span>ตั้งค่าปริ้นท์เตอร์</span>
                                 </div>
                             </button>
                         </div>
@@ -432,8 +515,29 @@
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.print();
-    }
+    };
+    window.generateQRCode = (elementId, qrCodeText) => {
+        var element = document.getElementById(elementId);
+        if (!element) {
+            console.error(`Element with id '${elementId}' not found.`);
+            return;
+        }
 
+        // Clear any existing content within the element
+        element.innerHTML = ''; // This will remove any previous QR code
+
+        new QRCode(element, {
+            text: qrCodeText,
+            width: 250,
+            height: 250,
+        });
+    };
+    window.triggerFormSubmit = (formId) => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+    };
 </script>
 @code {
     private OrderDTO orderDto = new OrderDTO();
@@ -454,6 +558,7 @@
     private decimal CartQtyTotal => Cart.Sum(item => item.Quantity);
     private decimal CartDiscountTotal => Cart.Sum(item => item.Discount);
     private decimal SubTotal => CartTotal - CartDiscountTotal;
+    private decimal Remaining => Total - balance;
     private decimal ChangeCash => balance - Total;
     private decimal Discount => CartDiscountTotal;
     private decimal balance = 0;
@@ -464,11 +569,20 @@
     private AlertComponent alertComponent;
     private List<PrinterSetting> printerSettings;
     private string selectedPrinter;
- 
-
+    private bool showModal = false;
+    private List<MethodPayment> methodPayment;
+    private decimal amount => Total;
+    private string qrCode;
+   
+    private async void OpenModal()
+    {
+        showModal = true;
+        await JS.InvokeVoidAsync("toggleDrawer");
+        await GenerateQRCode();
+    }
 
     // Format the balance with currency symbol
-    private string BalanceFormatted => $"{balance.ToString("N0", CultureInfo.InvariantCulture)} ฿";
+    private string BalanceFormatted => $"{balance.ToString("C0", customThaiCulture)}";
 
     private void ShowExampleAlert()
     {
@@ -484,6 +598,7 @@
             // หรือ
             // NavigationManager.NavigateTo("/notfound"); // ไปยังหน้าแจ้งว่าไม่พบข้อมูล
         }
+        methodPayment = await MethodPaymentService.GetMethodPaymentsWithStatusYesAsync();
         products = (await ProductService.GetProducts()).ToList();
         categories = (await ProductService.GetCategories()).ToList();
         order = new Order { OrderItems = new List<OrderItem>() };
@@ -543,6 +658,7 @@
         // Clear the form and cart only after successful submission
         order = new Order { OrderItems = new List<OrderItem>() };
         paymentMethod = "";
+        balance = 0;
         Cart.Clear();
 
         StateHasChanged();
@@ -670,8 +786,9 @@
             };
 
         orderDto.Payments.Add(paymentDto);
+        showModal = false;
         await PrintOrder();
-
+        
         try
         {
             var response = await OrderService.CreateOrder(orderDto);
@@ -732,6 +849,43 @@
     {
         balance = value;
         StateHasChanged(); // Request a UI update
+    }
+    //Qr Code
+    private async Task GenerateQRCode()
+    {
+        if (methodPayment.Count > 0)
+        {
+            if (methodPayment[0].MethodStatus == "Yes")
+            {
+                if (methodPayment[0].MethodType == "NationalId")
+                {
+                    var nationalId = methodPayment[0].MethodNumber;
+                    qrCode = PromptPayService.GenerateNationalIdQRCode(nationalId, Convert.ToDouble(amount), nationalId);
+                }
+                else if (methodPayment[0].MethodType == "MobileNumber")
+                {
+                    var mobileNumber = methodPayment[0].MethodNumber;
+                    qrCode = PromptPayService.GenerateMobileNumberQRCode(mobileNumber, Convert.ToDouble(amount), mobileNumber);
+                }
+                else if (methodPayment[0].MethodType == "BankAccount")
+                {
+                    var bankAccount = methodPayment[0].MethodNumber;
+                    qrCode = PromptPayService.GenerateBankAccountQRCode(bankAccount, Convert.ToDouble(amount), bankAccount);
+                }
+                else if (methodPayment[0].MethodType == "E-Wallet")
+                {
+                    var eWallet = methodPayment[0].MethodNumber;
+                    qrCode = PromptPayService.GenerateEWalletQRCode(eWallet, Convert.ToDouble(amount), eWallet);
+                }
+            }
+            StateHasChanged();
+            await Task.Delay(50);
+            await JS.InvokeVoidAsync("generateQRCode", "qrcode", qrCode);
+        }
+    }
+    private async Task TriggerFormSubmit()
+    {
+        await JS.InvokeVoidAsync("triggerFormSubmit", "order-form"); // Pass the form's id
     }
     //PrintOrder
     private async Task PrintOrder()
@@ -1048,7 +1202,7 @@
         html.Append("</div>");
 
         html.Append("<div style='grid-row: 3; display: flex; justify-content: space-between;height:18px'>");
-        html.Append($"<p>เงินสด: {balance}</p><p>เงินทอน: {ChangeCash}</p>");
+        html.Append($"<p>เงินสด: {balance.ToString("C", customThaiCulture)}</p><p>เงินทอน: {ChangeCash.ToString("C", customThaiCulture)}</p>");
         html.Append("</div>");
 
         html.Append("<div style='grid-row: 4; display: flex; justify-content: space-between;height:18px'>");

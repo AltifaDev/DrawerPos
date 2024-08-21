@@ -197,10 +197,11 @@ namespace DrawerPos.API.Controllers
         {
             try
             {
+          
                 var lastBillNo = await _context.BillNumbers
-                    .OrderByDescending(b => b.BillNo)
-                    .Select(b => b.BillNo)
-                    .FirstOrDefaultAsync();
+                   
+                   .Select(b => b.BillNo)
+                   .ToListAsync();
 
                 if (lastBillNo == null)
                 {

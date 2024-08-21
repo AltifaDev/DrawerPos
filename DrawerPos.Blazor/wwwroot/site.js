@@ -9,6 +9,7 @@
         });
     }
 }
+ 
 window.applyFilter = (filterValue) => {
     let rows = document.querySelectorAll("#productsTable tbody tr");
     filterValue = filterValue.trim().toLowerCase();
@@ -46,6 +47,7 @@ window.toggleSidebar = function () {
     sidebar.style.width = isOpen ? '5rem' : '16rem';
     return !isOpen;
 };
+
 function toggleDrawer() {
     var drawer = document.getElementById('drawer-right');
     var backdrop = document.getElementById('drawer-backdrop');
@@ -70,4 +72,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
- 

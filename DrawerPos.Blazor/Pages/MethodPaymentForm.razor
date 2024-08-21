@@ -1,0 +1,93 @@
+﻿@page "/Methodpaymentform/{QrId:int?}"
+@inject MethodPaymentService MethodPaymentService
+@inject NavigationManager NavigationManager
+
+
+<div class="flex justify-center items-center mt-6">
+    <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+        <h3 class="text-xl font-bold mb-4">@(QrId == null ? "เพิ่ม" : "แก้ไข") ช่องทางชำระเงินผ่าน QR</h3>
+
+        <EditForm Model="methodPayment" class="space-y-6" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">ชื่อรายการรับเงิน</label>
+                <InputText id="methodName" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" @bind-Value="methodPayment.MethodName" />
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">การรับชำระ</label>
+                <InputSelect id="methodType" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" @bind-Value="methodPayment.MethodType">
+                    <option value="">--- เลือก ---</option>
+                      @foreach (var type in methodTypes)
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">ระบุหมายเลข บัตรประชาชน,เบอร์โทร, E-Wallet</label>
+                <InputText id="methodNumber" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" @bind-Value="methodPayment.MethodNumber" />
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">สถานะการใช้งาน <span class="text-blue-500">(เลือกใช้งานได้แค่ 1 รายการ ถ้าต้องการเปลี่ยนกรุณาปิดการใช้งานรายการที่ใช้อยู่)</span></label>
+                @if (methodPaymentStatus == null)
+                {
+                    <p>Loading payment methods...</p>
+                }
+                else
+                {
+                    <InputSelect id="methodStatus" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" @bind-Value="methodPayment.MethodStatus">
+                        <option value="">--- เลือก ---</option>
+                        @if (methodPaymentStatus.Count != 1)
+                        {
+                            <option value="Yes">ใช้งานอยู่</option>
+                        }
+                        <option value="No">หยุดทำงาน</option>
+                    </InputSelect>
+                }
+            </div>
+
+            <button type="submit" class="bg-blue-500 text-white text-sm px-4 py-2 rounded hover\:bg-blue-800">Save</button>
+            <button type="button" class="ml-4 bg-gray-800 text-sm text-white px-4 py-2 rounded hover:bg-gray-600" @onclick="Cancel">Cancel</button>
+        </EditForm>
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public int? QrId { get; set; }
+    private MethodPayment methodPayment = new MethodPayment();
+    private List<MethodPayment> methodPaymentStatus ;
+    private List<string> methodTypes = new List<string> { "BankAccount", "NationalId", "MobileNumber", "E-Wallet" };
+    protected override async Task OnInitializedAsync()
+    {
+        if (QrId.HasValue)
+        {
+            methodPayment = await MethodPaymentService.GetMethodPaymentByIdAsync(QrId.Value);
+        }
+        methodPaymentStatus = await MethodPaymentService.GetMethodPaymentsWithStatusYesAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (QrId.HasValue)
+        {
+            await MethodPaymentService.UpdateMethodPaymentAsync(QrId.Value, methodPayment);
+        }
+        else
+        {
+            await MethodPaymentService.CreateMethodPaymentAsync(methodPayment);
+        }
+
+        NavigationManager.NavigateTo("/methodpayments");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/methodpayments");
+    }
+}

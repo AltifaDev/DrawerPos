@@ -18,9 +18,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.7" />
     <PackageReference Include="NETStandardQRCode" Version="1.0.2" />
-    <PackageReference Include="QRCoder" Version="1.4.2" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+    <PackageReference Include="Saladpuk.PromptPay" Version="3.0.1" />
     <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 
   <ItemGroup>

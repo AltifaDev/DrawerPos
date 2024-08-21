@@ -1,8 +1,5 @@
 ﻿@page "/company-form/{CompanyId:int?}"
-@using DrawerPos.Shared
-@using System.Globalization;
-@using DrawerPos.Blazor.Services
-@inject DrawerPos.Blazor.Services.CompanyService CompanyService
+@inject CompanyService CompanyService
 @inject NavigationManager NavigationManager
 
  <div class="container mx-auto mt-8">

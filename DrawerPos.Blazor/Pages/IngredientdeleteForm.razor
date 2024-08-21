@@ -1,0 +1,44 @@
+﻿@page "/ingredient/delete/{Id:int}"
+
+@inject IngredientService IngredientService
+@inject NavigationManager NavigationManager
+
+<div class="flex justify-center items-center mt-6">
+    <div class="w-full   p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+
+        <h3 class="text-lg font-bold mb-4">ลบรายการวัตถุดิบ</h3>
+
+        <p>คุณแน่ใจหรือไม่ว่าต้องการลบรายการวัตถุดิบนี้?</p>
+
+<div class="border p-4 mt-4">
+    <p><strong>ชื่อวัตถุดิบ:</strong> @Ingredient?.IngredientName</p>
+    <p><strong>หน่วย:</strong> @Ingredient?.Unit?.UnitName</p>
+</div>
+
+<div class="mt-4">
+            <button class="m-4 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" @onclick="DeleteIngredientAsync">Delete</button>
+            <button class="m-4 text-white bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" @onclick="Cancel">Cancel</button>
+</div>
+    </div>
+</div>
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Ingredient Ingredient { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Ingredient = await IngredientService.GetIngredientByIdAsync(Id);
+    }
+
+    private async Task DeleteIngredientAsync()
+    {
+        await IngredientService.DeleteIngredientAsync(Id);
+        NavigationManager.NavigateTo("/ingredients");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/ingredients");
+    }
+}
